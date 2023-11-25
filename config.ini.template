@@ -4,7 +4,7 @@ amount_gifted_tier1 = 3
 amount_gifted_tier2 = 2
 amount_gifted_tier3 = 1
 amount_tip = 1.00
-streamlabs_username = Streamlabs
+signal_bot = Streamlabs
 
 [spotify]
 client_id = 

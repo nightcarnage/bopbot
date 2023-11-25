@@ -31,7 +31,7 @@ try:
     AMOUNT_GIFTED_TIER2 = int(cfg["b0pperbot"]["amount_gifted_tier2"])
     AMOUNT_GIFTED_TIER3 = int(cfg["b0pperbot"]["amount_gifted_tier3"])
     AMOUNT_TIP = float(cfg["b0pperbot"]["amount_tip"])
-    STREAMLABS_USERNAME = cfg["b0pperbot"]["streamlabs_username"]
+    SIGNAL_BOT = cfg["b0pperbot"]["signal_bot"]
 except:
     print("Cannot read 'config.ini'.")
     print("Exiting...")
@@ -87,7 +87,7 @@ async def on_message(msg: ChatMessage):
     global donor_list
     global playlist_tracks
 
-    if msg.user.name.lower() == STREAMLABS_USERNAME.lower():
+    if msg.user.name.lower() == SIGNAL_BOT.lower():
         """
         TODO parsing streamlabs in chat because streamlabs
         requires approval for API access
