@@ -1,0 +1,17 @@
+[b0pperbot]
+amount_bits = 100
+amount_gifted_tier1 = 3
+amount_gifted_tier2 = 2
+amount_gifted_tier3 = 1
+amount_tip = 1.00
+streamlabs_username = Streamlabs
+
+[spotify]
+client_id = 
+secret_key = 
+playlist_uri = 
+
+[twitch]
+client_id = 
+secret_key = 
+channel = 
