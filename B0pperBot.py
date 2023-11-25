@@ -38,7 +38,7 @@ except:
     exit(-1)
 
 app_name = "B0pperBot"
-dono_list = []
+donor_list = []
 sp = 0
 playlist_tracks = []
 playlist_ids = []
@@ -84,7 +84,7 @@ async def on_ready(ready_event: EventData):
 async def on_message(msg: ChatMessage):
     #print(f"in {msg.room.name}, {msg.user.name} said: {msg.text}")
 
-    global dono_list
+    global donor_list
     global playlist_tracks
 
     if msg.user.name.lower() == STREAMLABS_USERNAME.lower():
@@ -131,13 +131,13 @@ async def on_message(msg: ChatMessage):
 
         if can_request:
             print(donor, "added to dono list")
-            dono_list.append(donor.lower())
+            donor_list.append(donor.lower())
 
     if msg.text.startswith("!sr"):
-        if msg.user.name.lower() in dono_list:
+        if msg.user.name.lower() in donor_list:
 
             print(msg.user.name, "had one occurence removed from dono list")
-            dono_list.remove(msg.user.name.lower())
+            donor_list.remove(msg.user.name.lower())
 
             tr = sp.currently_playing()
             ci = 0
@@ -155,7 +155,7 @@ async def on_message(msg: ChatMessage):
                 nt["uri"] = track["uri"]
                 nt["bopped"] = True
                 nt["id"] = track["id"]
-                nt["pos"] = ci + len(dono_list)
+                nt["pos"] = ci + len(donor_list)
                 playlist_tracks.append({"track": nt})
             """
             for t in playlist_tracks:
@@ -165,21 +165,20 @@ async def on_message(msg: ChatMessage):
             """
 
             sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,\
-                ci + len(dono_list))
+                ci + len(donor_list))
 
 
 def help(command = ""):
     if command == "":
-        print("Commands: help, quit. For further help, type 'help <command>'.")
+        print("Commands: donors, help, quit. For further help, type 'help <command>'.")
     if command == "quit":
         print("The 'quit' command deactivates", app_name, "and exits the program.")
     if command == "help":
         print("The 'help' command provides... help.")
-
-def show_donor_list():
-
-
-    print(set(donor_list))
+    if command == "donors":
+        print("The 'donors' command shows the list of users who have access to the \
+song request chat command (default: '!sr') currently. To search for a user in the \
+list: 'donors <user>'.")
 
 async def run():
     twitch = await Twitch(TWITCH_CLIENT_ID, TWITCH_SECRET)
@@ -223,6 +222,12 @@ async def run():
                         help()
                 if cmd == "quit" or cmd == "exit":
                     quit = True
+
+                if cmd == "donors":
+                    if len(line) >= 2:
+                        print(line[1] in donor_list)
+                    else:
+                        print(list(set(donor_list)))
 
     finally:
 
