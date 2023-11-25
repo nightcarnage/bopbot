@@ -15,9 +15,9 @@ import asyncio
 import requests
 
 cfg = configparser.ConfigParser()
-cfg.read("config.ini")
-
 try:
+    cfg.read("config.ini")
+
     TWITCH_CLIENT_ID = cfg["twitch"]["client_id"]
     TWITCH_SECRET = cfg["twitch"]["secret_key"]
     TARGET_CHANNEL = cfg["twitch"]["channel"]
@@ -33,7 +33,8 @@ try:
     AMOUNT_TIP = float(cfg["b0pperbot"]["amount_tip"])
     STREAMLABS_USERNAME = cfg["b0pperbot"]["streamlabs_username"]
 except:
-    print("There was a 'config.ini' error.")
+    print("Cannot read 'config.ini'.")
+    print("Exiting...")
     exit(-1)
 
 app_name = "B0pperBot"
@@ -41,6 +42,7 @@ dono_list = []
 sp = 0
 playlist_tracks = []
 playlist_ids = []
+bot_ready = False
 
 async def on_ready(ready_event: EventData):
 
@@ -74,7 +76,9 @@ async def on_ready(ready_event: EventData):
     for track in playlist_tracks:
         track["track"]["bopped"] = False
 
-    print(app_name, "is ready.")
+    print(app_name, "is ready.\n")
+    global bot_ready
+    bot_ready = True
     await ready_event.chat.join_room(TARGET_CHANNEL)
 
 async def on_message(msg: ChatMessage):
@@ -162,7 +166,21 @@ async def on_message(msg: ChatMessage):
 
             sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,\
                 ci + len(dono_list))
-            
+
+
+def help(command = ""):
+    if command == "":
+        print("Commands: help, quit. For further help, type 'help <command>'.")
+    if command == "quit":
+        print("The 'quit' command deactivates", app_name, "and exits the program.")
+    if command == "help":
+        print("The 'help' command provides... help.")
+
+def show_donor_list():
+
+
+    print(set(donor_list))
+
 async def run():
     twitch = await Twitch(TWITCH_CLIENT_ID, TWITCH_SECRET)
     auth = UserAuthenticator(twitch, USER_SCOPE)
@@ -174,10 +192,45 @@ async def run():
     chat.register_event(ChatEvent.MESSAGE, on_message)
 
     chat.start()
+
+    print()
+    print(
+"""
+┌┐ ┌─┐┌─┐┌─┐┌─┐┬─┐┌┐ ┌─┐┌┬┐
+├┴┐│ │├─┘├─┘├┤ ├┬┘├┴┐│ │ │ 
+└─┘└─┘┴  ┴  └─┘┴└─└─┘└─┘ ┴ 
+"""
+)
+
+    help()
+
     try:
-        input("press ENTER to stop\n")
+        quit = False
+        while not quit:
+
+            if not bot_ready: continue
+
+            line = input("cmd: ")
+            line = line.split()
+
+            if len(line) >= 1:
+                cmd = line[0]
+
+                if cmd == "help":
+                    if len(line) >= 2:
+                        help(line[1])
+                    else:
+                        help()
+                if cmd == "quit" or cmd == "exit":
+                    quit = True
+
     finally:
 
+        print("Leaving Twitch...")
+        chat.stop()
+        await twitch.close()
+
+        print("Removing requested songs from playlist...")
         for track in playlist_tracks:
             if track["track"]["bopped"]:
                 tid = track["track"]["id"]
@@ -188,7 +241,6 @@ async def run():
                 SPOTIFY_PLAYLIST_URI, track_ids
                 )
 
-        chat.stop()
-        await twitch.close()
+        print("Exiting...")
 
 asyncio.run(run())
