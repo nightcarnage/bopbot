@@ -15,3 +15,6 @@ playlist_uri =
 client_id = 
 secret_key = 
 channel = 
+gifted_message = 
+bits_message = 
+tip_message = 
