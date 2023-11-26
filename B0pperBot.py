@@ -44,6 +44,7 @@ sp = 0
 playlist_tracks = []
 playlist_ids = []
 bot_ready = False
+ci_inc = 0
 
 def cache_playlist():
     global playlist_tracks
@@ -151,6 +152,8 @@ async def on_message(msg: ChatMessage):
                 ci += 1
                 if track["track"]["id"] == tr["item"]["id"]:
                     break
+            
+            global ci_inc
 
             results = sp.search(q=" ".join(msg.text.split()[1:]), limit=1)
             track_uris = []
@@ -161,17 +164,12 @@ async def on_message(msg: ChatMessage):
                 nt["uri"] = track["uri"]
                 nt["bopped"] = True
                 nt["id"] = track["id"]
-                nt["pos"] = ci + len(donor_list)
+                nt["pos"] = ci + ci_inc
                 playlist_tracks.append({"track": nt})
-            """
-            for t in playlist_tracks:
-                if t["track"]["uri"] in track_uris:
-                    playlist_tracks[i]["track"]["bopped"] = True
-                    print("bopped true")
-            """
 
-            sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,\
-                ci + len(donor_list))
+            print("Adding requested track to position", str(ci+ci_inc))
+            sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,ci + ci_inc)
+            ci_inc += 1
 
 
 def help(command = ""):
@@ -191,16 +189,18 @@ list: 'donors <user>'.")
 def clean_playlist():
     print("Removing requested songs from playlist...")
 
+    i = 0
     for track in playlist_tracks:
 
         if track["track"]["bopped"]:
             tid = track["track"]["id"]
-            pos = track["track"]["pos"]
+            pos = track["track"]["pos"] - i
             track_ids = []
             track_ids.append({"uri": tid, "positions": [int(pos)]})
             sp.playlist_remove_specific_occurrences_of_items(
             SPOTIFY_PLAYLIST_URI, track_ids
             )
+            i+=1
 
 async def run():
 
