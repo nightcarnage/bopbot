@@ -5,3 +5,4 @@ dist/
 *.cache
 config.ini
 gui/
+user_token.json

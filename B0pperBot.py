@@ -3,6 +3,7 @@ from spotipy.oauth2 import SpotifyOAuth
 
 from twitchAPI.twitch import Twitch
 from twitchAPI.oauth import UserAuthenticator
+from twitchAPI.oauth import UserAuthenticationStorageHelper
 from twitchAPI.type import AuthScope, ChatEvent
 from twitchAPI.chat import Chat, EventData, ChatMessage, ChatSub, ChatCommand
 USER_SCOPE = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
@@ -15,7 +16,7 @@ import requests
 import readline
 
 app_name = "B0pperBot"
-donor_list = []
+donors = {}
 sp = 0
 playlist_tracks = []
 playlist_ids = []
@@ -88,9 +89,9 @@ async def on_ready(ready_event: EventData):
     await ready_event.chat.join_room(TARGET_CHANNEL)
 
 async def on_message(msg: ChatMessage):
-    #print(f"in {msg.room.name}, {msg.user.name} said: {msg.text}")
+    print(f"in {msg.room.name}, {msg.user.name} said: {msg.text}")
 
-    global donor_list
+    global donors
     global playlist_tracks
 
     if msg.user.name.lower() == SIGNAL_BOT.lower():
@@ -105,7 +106,7 @@ async def on_message(msg: ChatMessage):
 
         donor = ""
         amount = 0
-        can_request = False
+        credit = 0
 
         if "tipping" in msg.text:
             line = msg.text.split()
@@ -114,14 +115,14 @@ async def on_message(msg: ChatMessage):
             if amount >= AMOUNT_TIP:
                 #TODO currency conversion
                 if line[5].startswith("$"):
-                    can_request = True
+                    credit += round(amount/AMOUNT_TIP)
 
         if "bits" in msg.text:
             line = msg.text.split()
             amount = int(line[5])
             donor = line[2]
             if amount >= AMOUNT_BITS:
-                can_request = True
+                credit += round(amount/AMOUNT_BITS)
         
         if "gifted" in msg.text:
             line = msg.text.split()
@@ -129,28 +130,22 @@ async def on_message(msg: ChatMessage):
             donor = line[0]
             tier = 1
             if int(line[5]) == 1 and amount >= AMOUNT_GIFTED_TIER1:
-                can_request = True
+                credit += round(amount/AMOUNT_GIFTED_TIER1)
             if int(line[5]) == 2 and amount >= AMOUNT_GIFTED_TIER2:
-                can_request = True
+                credit += round(amount/AMOUNT_GIFTED_TIER2)
             if int(line[5]) == 3 and amount >= AMOUNT_GIFTED_TIER3:
-                can_request = True
+                credit += round(amount/AMOUNT_GIFTED_TIER3)
 
-        if can_request:
-            #print(donor, "added to donor list")
-            donor_list.append(donor.lower())
+        donors[donor.lower()] = round(credit)
 
 def help(command = ""):
     if command == "":
-        print("Commands: donors, refresh, reset, help, quit. For further help, type \
+        print("Commands: refresh, reset, help, quit. For further help, type \
 'help <command>'.")
     if command == "quit":
         print("The 'quit' command deactivates", app_name, "and exits the program.")
     if command == "help":
         print("The 'help' command provides... help.")
-    if command == "donors":
-        print("The 'donors' command shows the list of users who have access to the \
-song request chat command (default: '!sr') currently. To search for a user in the \
-list: 'donors <user>'.")
     if command == "reset":
         print("The 'reset' command reverts", app_name, "back to the startup state.")
     if command == "refresh":
@@ -176,46 +171,49 @@ def clean_playlist():
     ci_inc = 0
 
 async def sr_command(cmd: ChatCommand):
-    if cmd.user.name.lower() in donor_list:
+    if cmd.user.name.lower() in donors.keys():
+        if donors[cmd.user.name.lower()] >= 1:
+            donors[cmd.user.name.lower()] -= 1
 
-       # print(cmd.user.name, "had one occurence removed from dono list")
-        donor_list.remove(cmd.user.name.lower())
+            tr = sp.currently_playing()
+            ci = 0
+            for track in playlist_tracks:
+                ci += 1
+                if track["track"]["id"] == tr["item"]["id"]:
+                    break
+            
+            global ci_inc
 
-        tr = sp.currently_playing()
-        ci = 0
-        for track in playlist_tracks:
-            ci += 1
-            if track["track"]["id"] == tr["item"]["id"]:
-                break
-        
-        global ci_inc
+            results = sp.search(q=cmd.parameter, limit=1)
+            track_uris = []
+            for idx, track in enumerate(results["tracks"]["items"]):
+                track_uris.append(track["uri"])
 
-        results = sp.search(q=cmd.parameter, limit=1)
-        track_uris = []
-        for idx, track in enumerate(results["tracks"]["items"]):
-            track_uris.append(track["uri"])
+                nt = {}
+                nt["uri"] = track["uri"]
+                nt["bopped"] = True
+                nt["id"] = track["id"]
+                nt["pos"] = ci + ci_inc
+                playlist_tracks.append({"track": nt})
 
-            nt = {}
-            nt["uri"] = track["uri"]
-            nt["bopped"] = True
-            nt["id"] = track["id"]
-            nt["pos"] = ci + ci_inc
-            playlist_tracks.append({"track": nt})
+                name = track["name"]
+                await cmd.reply(f'@{cmd.user.name}, adding \'{name}\' to the queue.')
 
-            name = track["name"]
-            await cmd.reply(f'@{cmd.user.name}, adding \'{name}\' to the queue.')
-
-        #print("Adding requested track to position", str(ci+ci_inc))
-        sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,ci + ci_inc)
-        ci_inc += 1
+            #print("Adding requested track to position", str(ci+ci_inc))
+            sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,ci + ci_inc)
+            ci_inc += 1
 
 async def run():
 
-    global donor_list
+    global donors
     global playlist_tracks
 
     twitch = await Twitch(TWITCH_CLIENT_ID, TWITCH_SECRET)
     auth = UserAuthenticator(twitch, USER_SCOPE)
+
+    helper = UserAuthenticationStorageHelper(twitch, USER_SCOPE)
+    await helper.bind()
+
     token, refresh_token = await auth.authenticate()
     await twitch.set_user_authentication(token, USER_SCOPE, refresh_token)
 
@@ -253,16 +251,10 @@ async def run():
                     help()
             if cmd == "quit" or cmd == "exit":
                 quit = True
-
-            if cmd == "donors":
-                if len(line) >= 2:
-                    print(line[1] in donor_list)
-                else:
-                    print(list(set(donor_list)))
             
             if cmd == "reset":
                 print("Clearing donor list...")
-                donor_list = []
+                donors = []
                 
                 clean_playlist()
 
