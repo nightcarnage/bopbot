@@ -5,6 +5,7 @@ amount_gifted_tier2 = 2
 amount_gifted_tier3 = 1
 amount_tip = 1.00
 signal_bot = Streamlabs
+request_cmd = sr
 
 [spotify]
 client_id = 

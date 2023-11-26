@@ -37,6 +37,7 @@ try:
     AMOUNT_GIFTED_TIER3 = int(cfg['b0pperbot']['amount_gifted_tier3'])
     AMOUNT_TIP = float(cfg['b0pperbot']['amount_tip'])
     SIGNAL_BOT = cfg['b0pperbot']['signal_bot']
+    REQUEST_CMD = cfg['b0pperbot']['request_cmd']
 except:
     print('Cannot read "config.ini".')
     print('Exiting...')
@@ -221,7 +222,7 @@ async def run():
     chat = await Chat(twitch)
     chat.register_event(ChatEvent.READY, on_ready)
     chat.register_event(ChatEvent.MESSAGE, on_message)
-    chat.register_command('sr', sr_command)
+    chat.register_command(REQUEST_CMD, sr_command)
 
     chat.start()
 
