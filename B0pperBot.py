@@ -14,6 +14,7 @@ import configparser
 import asyncio
 import requests
 import readline
+import re
 
 cfg = configparser.ConfigParser()
 try:
@@ -22,6 +23,9 @@ try:
     TWITCH_CLIENT_ID = cfg['twitch']['client_id']
     TWITCH_SECRET = cfg['twitch']['secret_key']
     TARGET_CHANNEL = cfg['twitch']['channel']
+    GIFTED_MESSAGE = cfg['twitch']['gifted_message']
+    BITS_MESSAGE = cfg['twitch']['bits_message']
+    TIP_MESSAGE = cfg['twitch']['tip_message']
 
     SPOTIFY_CLIENT_ID = cfg['spotify']['client_id']
     SPOTIFY_SECRET = cfg['spotify']['secret_key']
@@ -105,7 +109,7 @@ async def on_message(msg: ChatMessage):
         amount = 0
         credit = 0
 
-        if 'tipping' in msg.text:
+        if re.match(TIP_MESSAGE, msg.text):
             line = msg.text.split()
             amount = float(line[5][1:-1])
             donor = line[2]
@@ -114,14 +118,14 @@ async def on_message(msg: ChatMessage):
                 if line[5].startswith('$'):
                     credit += round(amount/AMOUNT_TIP)
 
-        if 'bits' in msg.text:
+        if re.match(BITS_MESSAGE, msg.text):
             line = msg.text.split()
             amount = int(line[5])
             donor = line[2]
             if amount >= AMOUNT_BITS:
                 credit += round(amount/AMOUNT_BITS)
         
-        if 'gifted' in msg.text:
+        if re.match(GIFTED_MESSAGE, msg.text):
             line = msg.text.split()
             amount = int(line[3])
             donor = line[0]
