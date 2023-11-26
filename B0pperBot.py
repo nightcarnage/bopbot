@@ -93,7 +93,6 @@ async def on_message(msg: ChatMessage):
     global donor_list
     global playlist_tracks
 
-    print(msg.user.name, SIGNAL_BOT)
     if msg.user.name.lower() == SIGNAL_BOT.lower():
         """
         TODO parsing streamlabs in chat because streamlabs
@@ -137,7 +136,7 @@ async def on_message(msg: ChatMessage):
                 can_request = True
 
         if can_request:
-            print(donor, "added to dono list")
+            #print(donor, "added to donor list")
             donor_list.append(donor.lower())
 
 def help(command = ""):
