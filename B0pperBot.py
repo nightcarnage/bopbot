@@ -1,4 +1,3 @@
-
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
@@ -8,12 +7,20 @@ from twitchAPI.type import AuthScope, ChatEvent
 from twitchAPI.chat import Chat, EventData, ChatMessage, ChatSub, ChatCommand
 USER_SCOPE = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
 
-from pprint import pprint
+from sys import exit
 import configparser
 
 import asyncio
 import requests
 import readline
+
+app_name = "B0pperBot"
+donor_list = []
+sp = 0
+playlist_tracks = []
+playlist_ids = []
+bot_ready = False
+ci_inc = 0
 
 cfg = configparser.ConfigParser()
 try:
@@ -38,22 +45,15 @@ except:
     print("Exiting...")
     exit(-1)
 
-app_name = "B0pperBot"
-donor_list = []
-sp = 0
-playlist_tracks = []
-playlist_ids = []
-bot_ready = False
-ci_inc = 0
 
 def cache_playlist():
     global playlist_tracks
     offset = 0
     while True:
         response = sp.playlist_items(SPOTIFY_PLAYLIST_URI,
-                                    offset=offset,
-                                    fields="items.track.id,items.track.uri,total",
-                                    additional_types=["track"])
+                            offset=offset,
+                            fields="items.track.id,items.track.uri,total",
+                            additional_types=["track"])
 
         if len(response["items"]) == 0:
             break
@@ -140,41 +140,10 @@ async def on_message(msg: ChatMessage):
             print(donor, "added to dono list")
             donor_list.append(donor.lower())
 
-    if msg.text.startswith("!sr"):
-        if msg.user.name.lower() in donor_list:
-
-            print(msg.user.name, "had one occurence removed from dono list")
-            donor_list.remove(msg.user.name.lower())
-
-            tr = sp.currently_playing()
-            ci = 0
-            for track in playlist_tracks:
-                ci += 1
-                if track["track"]["id"] == tr["item"]["id"]:
-                    break
-            
-            global ci_inc
-
-            results = sp.search(q=" ".join(msg.text.split()[1:]), limit=1)
-            track_uris = []
-            for idx, track in enumerate(results["tracks"]["items"]):
-                track_uris.append(track["uri"])
-
-                nt = {}
-                nt["uri"] = track["uri"]
-                nt["bopped"] = True
-                nt["id"] = track["id"]
-                nt["pos"] = ci + ci_inc
-                playlist_tracks.append({"track": nt})
-
-            print("Adding requested track to position", str(ci+ci_inc))
-            sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,ci + ci_inc)
-            ci_inc += 1
-
-
 def help(command = ""):
     if command == "":
-        print("Commands: donors, reset, help, quit. For further help, type 'help <command>'.")
+        print("Commands: donors, refresh, reset, help, quit. For further help, type \
+'help <command>'.")
     if command == "quit":
         print("The 'quit' command deactivates", app_name, "and exits the program.")
     if command == "help":
@@ -185,6 +154,8 @@ song request chat command (default: '!sr') currently. To search for a user in th
 list: 'donors <user>'.")
     if command == "reset":
         print("The 'reset' command reverts", app_name, "back to the startup state.")
+    if command == "refresh":
+        print("The 'refresh' command is like reset but keeps the donor list.")
 
 def clean_playlist():
     print("Removing requested songs from playlist...")
@@ -201,6 +172,43 @@ def clean_playlist():
             SPOTIFY_PLAYLIST_URI, track_ids
             )
             i+=1
+    
+    global ci_inc
+    ci_inc = 0
+
+async def sr_command(cmd: ChatCommand):
+    if cmd.user.name.lower() in donor_list:
+
+       # print(cmd.user.name, "had one occurence removed from dono list")
+        donor_list.remove(cmd.user.name.lower())
+
+        tr = sp.currently_playing()
+        ci = 0
+        for track in playlist_tracks:
+            ci += 1
+            if track["track"]["id"] == tr["item"]["id"]:
+                break
+        
+        global ci_inc
+
+        results = sp.search(q=cmd.parameter, limit=1)
+        track_uris = []
+        for idx, track in enumerate(results["tracks"]["items"]):
+            track_uris.append(track["uri"])
+
+            nt = {}
+            nt["uri"] = track["uri"]
+            nt["bopped"] = True
+            nt["id"] = track["id"]
+            nt["pos"] = ci + ci_inc
+            playlist_tracks.append({"track": nt})
+
+            name = track["name"]
+            await cmd.reply(f'@{cmd.user.name}, adding \'{name}\' to the queue.')
+
+        #print("Adding requested track to position", str(ci+ci_inc))
+        sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,ci + ci_inc)
+        ci_inc += 1
 
 async def run():
 
@@ -215,6 +223,7 @@ async def run():
     chat = await Chat(twitch)
     chat.register_event(ChatEvent.READY, on_ready)
     chat.register_event(ChatEvent.MESSAGE, on_message)
+    chat.register_command("sr", sr_command)
 
     chat.start()
 
@@ -262,6 +271,13 @@ async def run():
                 playlist_tracks = []
 
                 print("Caching playlist..")
+                cache_playlist()
+            if cmd == "refresh":
+                clean_playlist()
+                print("Clearing playlist cache...")
+                playlist_tracks = []
+
+                print("Caching playlist...")
                 cache_playlist()
 
     #finally:
