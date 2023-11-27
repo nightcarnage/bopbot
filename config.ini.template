@@ -6,11 +6,14 @@ amount_gifted_tier3 = 1
 amount_tip = 1.00
 signal_bot = Streamlabs
 request_cmd = sr
+credit_cmd = credit
+clean_playlist = True
 
 [spotify]
 client_id = 
 secret_key = 
 playlist_uri = 
+request_uri = http://localhost:3000
 
 [twitch]
 client_id = 
@@ -19,3 +22,4 @@ channel =
 gifted_message = 
 bits_message = 
 tip_message = 
+;request_uri = http://localhost:17563

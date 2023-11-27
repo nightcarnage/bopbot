@@ -1,9 +1,11 @@
 - improve regexp
 - get approval for streamlabs API access
 - more testing
-- instead of waiting until the end to clean the playlist
-  maybe poll for when all the requested songs have been 
-  played and there is not anymore in the queue then
-  clean the playlist of requested songs
 - write README
 - GUI front end? Doesn't seem necessary
+- need a better way to determine who is giving gift subs,
+  bits, and tipping and what tiers and how much. probably
+  a way to do this with pytwitchAPI. However, can't ignore
+  tips and those are done through streamlabs. Still would
+  need to parse the streamlabs message response anyway for
+  that

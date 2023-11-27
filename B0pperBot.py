@@ -11,6 +11,8 @@ USER_SCOPE = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
 from sys import exit
 import configparser
 
+from pprint import pprint
+
 import asyncio
 import requests
 import readline
@@ -30,14 +32,17 @@ try:
     SPOTIFY_CLIENT_ID = cfg['spotify']['client_id']
     SPOTIFY_SECRET = cfg['spotify']['secret_key']
     SPOTIFY_PLAYLIST_URI = cfg['spotify']['playlist_uri']
+    SPOTIFY_REQUEST_URI = cfg['spotify']['request_uri']
 
     AMOUNT_BITS = int(cfg['b0pperbot']['amount_bits'])
     AMOUNT_GIFTED_TIER1 = int(cfg['b0pperbot']['amount_gifted_tier1'])
     AMOUNT_GIFTED_TIER2 = int(cfg['b0pperbot']['amount_gifted_tier2'])
     AMOUNT_GIFTED_TIER3 = int(cfg['b0pperbot']['amount_gifted_tier3'])
     AMOUNT_TIP = float(cfg['b0pperbot']['amount_tip'])
+    CLEAN_PLAYLIST = bool(cfg['b0pperbot']['clean_playlist'])
     SIGNAL_BOT = cfg['b0pperbot']['signal_bot']
     REQUEST_CMD = cfg['b0pperbot']['request_cmd']
+    CREDIT_CMD = cfg['b0pperbot']['credit_cmd']
 except:
     print('Cannot read "config.ini".')
     print('Exiting...')
@@ -51,6 +56,9 @@ ci_inc = 0
 sp = 0
 
 def cache_playlist():
+
+    print('Caching playlist...')
+
     global playlist_tracks
     offset = 0
     while True:
@@ -78,7 +86,7 @@ async def on_ready(ready_event: EventData):
     sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
         client_id=SPOTIFY_CLIENT_ID,
         client_secret=SPOTIFY_SECRET,
-        redirect_uri='http://localhost:3000',
+        redirect_uri=SPOTIFY_REQUEST_URI,
         scope=scope
         ))
     
@@ -91,28 +99,26 @@ async def on_ready(ready_event: EventData):
     await ready_event.chat.join_room(TARGET_CHANNEL)
 
 async def on_message(msg: ChatMessage):
-    print(f'in {msg.room.name}, {msg.user.name} said: {msg.text}')
+    #print(f'in {msg.room.name}, {msg.user.name} said: {msg.text}')
 
     global donors
     global playlist_tracks
 
     if msg.user.name.lower() == SIGNAL_BOT.lower():
-        '''
-        TODO parsing streamlabs in chat because streamlabs
-        requires approval for API access
-        '''
 
-        #Thank you username for donating 100 bits
-        #username just gifted 1 Tier 1 subscriptions!
-        #Thank you username for tipping $1.00!
+        #Parsing streamlabs chat notifications, for example:
+        #   Thank you username for donating 100 bits
+        #   username just gifted 1 Tier 1 subscriptions!
+        #   Thank you username for tipping $1.00!
 
         donor = ''
         amount = 0
-        credit = 0
+        credit = donors.get(msg.user.name.lower(),0)
 
         if re.match(TIP_MESSAGE, msg.text):
             line = msg.text.split()
             amount = float(line[5][1:-1])
+            print("dollar amount", amount)
             donor = line[2]
             if amount >= AMOUNT_TIP:
                 #TODO currency conversion
@@ -139,21 +145,30 @@ async def on_message(msg: ChatMessage):
                 credit += round(amount/AMOUNT_GIFTED_TIER3)
 
         donors[donor.lower()] = round(credit)
+        print(donor+'\'s credit is now', str(credit))
 
 def help(command = ''):
     if command == '':
-        print('Commands: refresh, reset, help, quit. For further help, type \
+        print('Commands: donors, refresh, reset, help, quit. For further help, type \
 "help <command>".')
-    if command == "quit":
+    if command == 'quit':
         print('The "quit" command deactivates', app_name, 'and exits the program.')
-    if command == "help":
+    if command == 'help':
         print('The "help" command provides... help.')
-    if command == "reset":
+    if command == 'reset':
         print('The "reset" command reverts', app_name, 'back to the startup state.')
-    if command == "refresh":
-        print('The "refresh" command is like reset but keeps the donor list.')
+    if command == 'refresh':
+        print('The "refresh" command is like reset but keeps the donor list and \
+credit associated with each donor.')
+    if command == 'donors':
+        print('The "donors" command prints the donor\'s twitch username and their credit')
 
 def clean_playlist():
+
+
+    global CLEAN_PLAYLIST
+    if not CLEAN_PLAYLIST: return
+
     print('Removing requested songs from playlist...')
 
     i = 0
@@ -172,7 +187,14 @@ def clean_playlist():
     global ci_inc
     ci_inc = 0
 
-async def sr_command(cmd: ChatCommand):
+
+async def credit_command(cmd: ChatCommand):
+
+    credit = donors.get(cmd.user.name.lower(), 0)
+    await cmd.reply(f'@{cmd.user.name}, you have {credit} credit.')
+    
+
+async def request_command(cmd: ChatCommand):
     if cmd.user.name.lower() in donors.keys():
         if donors[cmd.user.name.lower()] >= 1:
             donors[cmd.user.name.lower()] -= 1
@@ -181,8 +203,8 @@ async def sr_command(cmd: ChatCommand):
             ci = 0
             for track in playlist_tracks:
                 ci += 1
-                if track['track']['id'] == tr['item']['id']:
-                    break
+                #if track['track']['id'] == tr['item']['id']:
+                #    break
             
             global ci_inc
 
@@ -199,11 +221,13 @@ async def sr_command(cmd: ChatCommand):
                 playlist_tracks.append({'track': nt})
 
                 name = track['name']
-                await cmd.reply(f'@{cmd.user.name}, adding "{name}" to the queue.')
+                artist = track['artists'][0]["name"]
+                await cmd.reply(f'@{cmd.user.name}, adding {name} by {artist} to the playlist.')
 
-            #print('Adding requested track to position', str(ci+ci_inc))
-            sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,ci + ci_inc)
-            ci_inc += 1
+            print('Adding requested track to position', str(ci+ci_inc))
+            sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,ci+ ci_inc)
+        ci_inc += 1
+
 
 async def run():
 
@@ -222,7 +246,8 @@ async def run():
     chat = await Chat(twitch)
     chat.register_event(ChatEvent.READY, on_ready)
     chat.register_event(ChatEvent.MESSAGE, on_message)
-    chat.register_command(REQUEST_CMD, sr_command)
+    chat.register_command(REQUEST_CMD, request_command)
+    chat.register_command(CREDIT_CMD, credit_command)
 
     chat.start()
 
@@ -263,15 +288,16 @@ async def run():
                 print('Clearing playlist cache...')
                 playlist_tracks = []
 
-                print('Caching playlist..')
                 cache_playlist()
             if cmd == 'refresh':
                 clean_playlist()
                 print('Clearing playlist cache...')
                 playlist_tracks = []
 
-                print('Caching playlist...')
                 cache_playlist()
+            
+            if cmd == "donors":
+                pprint(donors)
 
     #finally:
 
