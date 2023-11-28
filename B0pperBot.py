@@ -52,8 +52,9 @@ app_name = 'B0pperBot'
 donors = {}
 playlist_tracks = []
 bot_ready = False
-ci_inc = 0
 sp = 0
+last_ci = -1
+ci_inc = 0
 
 def cache_playlist():
 
@@ -145,12 +146,14 @@ async def on_message(msg: ChatMessage):
                 credit += round(amount/AMOUNT_GIFTED_TIER3)
 
         donors[donor.lower()] = round(credit)
-        print(donor+'\'s credit is now', str(credit))
+        if donor: print(donor+'\'s credit is now', str(credit))
 
 def help(command = ''):
     if command == '':
-        print('Commands: donors, refresh, reset, help, quit. For further help, type \
+        print('Commands: playlist, donors, refresh, reset, help, quit. For further help, type \
 "help <command>".')
+    if command == 'playlist':
+        print('The "playlist" command prints the cachced playlist.')
     if command == 'quit':
         print('The "quit" command deactivates', app_name, 'and exits the program.')
     if command == 'help':
@@ -183,9 +186,6 @@ def clean_playlist():
             SPOTIFY_PLAYLIST_URI, track_ids
             )
             i+=1
-    
-    global ci_inc
-    ci_inc = 0
 
 
 async def credit_command(cmd: ChatCommand):
@@ -200,13 +200,29 @@ async def request_command(cmd: ChatCommand):
             donors[cmd.user.name.lower()] -= 1
 
             tr = sp.currently_playing()
+
+            if tr == None:
+                print("There is currently no song playing.")
+                return
+
             ci = 0
+            offset = 0
+            global last_ci
+            global ci_inc
+
             for track in playlist_tracks:
                 ci += 1
-                #if track['track']['id'] == tr['item']['id']:
-                #    break
+                if track['track']['id'] == tr['item']['id']:
+                    break
             
-            global ci_inc
+            if ci == last_ci:
+                offset += ci_inc
+            else:
+                offset = 0
+                last_ci = ci
+                ci_inc = 0
+            
+            ci = ci + offset
 
             results = sp.search(q=cmd.parameter, limit=1)
             track_uris = []
@@ -217,17 +233,17 @@ async def request_command(cmd: ChatCommand):
                 nt['uri'] = track['uri']
                 nt['bopped'] = True
                 nt['id'] = track['id']
-                nt['pos'] = ci + ci_inc
-                playlist_tracks.append({'track': nt})
+                nt['pos'] = ci
+                playlist_tracks.insert(ci, {'track': nt})
 
                 name = track['name']
                 artist = track['artists'][0]["name"]
-                await cmd.reply(f'@{cmd.user.name}, adding {name} by {artist} to the playlist.')
+                await cmd.reply(f'@{cmd.user.name}, added {name} by {artist} to the playlist.')
 
-            print('Adding requested track to position', str(ci+ci_inc))
-            sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,ci+ ci_inc)
-        ci_inc += 1
+                print('Added requested track to position', str(ci))
 
+            sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,ci)
+            ci_inc += 1
 
 async def run():
 
@@ -254,9 +270,9 @@ async def run():
     print()
     print(
 '''
-    ┌┐ ┌─┐┌─┐┌─┐┌─┐┬─┐┌┐ ┌─┐┌┬┐
-    ├┴┐│ │├─┘├─┘├┤ ├┬┘├┴┐│ │ │ 
-    └─┘└─┘┴  ┴  └─┘┴└─└─┘└─┘ ┴ 
+ ┌┐ ┌─┐┌─┐┌─┐┌─┐┬─┐┌┐ ┌─┐┌┬┐
+ ├┴┐│ │├─┘├─┘├┤ ├┬┘├┴┐│ │ │ 
+ └─┘└─┘┴  ┴  └─┘┴└─└─┘└─┘ ┴ 
 '''
 )
     #try:
@@ -281,7 +297,7 @@ async def run():
             
             if cmd == 'reset':
                 print('Clearing donor list...')
-                donors = []
+                donors = {}
                 
                 clean_playlist()
 
@@ -298,6 +314,9 @@ async def run():
             
             if cmd == "donors":
                 pprint(donors)
+            
+            if cmd == "playlist":
+                pprint(playlist_tracks)
 
     #finally:
 
