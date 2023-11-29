@@ -267,9 +267,6 @@ async def run():
     twitch = await Twitch(TWITCH_CLIENT_ID, TWITCH_SECRET)
     auth = UserAuthenticator(twitch, USER_SCOPE)
 
-    helper = UserAuthenticationStorageHelper(twitch, USER_SCOPE)
-    await helper.bind()
-
     token, refresh_token = await auth.authenticate()
     await twitch.set_user_authentication(token, USER_SCOPE, refresh_token)
 
