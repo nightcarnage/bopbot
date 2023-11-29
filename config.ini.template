@@ -6,6 +6,7 @@ amount_gifted_tier3 = 1
 amount_tip = 1.00
 signal_bot = Streamlabs
 request_cmd = sr
+song_cmd = song
 credit_cmd = credit
 clean_playlist = True
 

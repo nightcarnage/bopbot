@@ -42,6 +42,7 @@ try:
     CLEAN_PLAYLIST = bool(cfg['b0pperbot']['clean_playlist'])
     SIGNAL_BOT = cfg['b0pperbot']['signal_bot']
     REQUEST_CMD = cfg['b0pperbot']['request_cmd']
+    SONG_CMD = cfg['b0pperbot']['song_cmd']
     CREDIT_CMD = cfg['b0pperbot']['credit_cmd']
 except:
     print('Cannot read "config.ini".')
@@ -192,7 +193,20 @@ async def credit_command(cmd: ChatCommand):
 
     credit = donors.get(cmd.user.name.lower(), 0)
     await cmd.reply(f'@{cmd.user.name}, you have {credit} credit.')
+
+async def song_command(cmd: ChatCommand):
+
+    tr = sp.currently_playing()
+
+    if tr == None:
+        await cmd.reply("There is currently no song playing.")
+        return
     
+    name = tr['item']['name']
+    artist = tr['item']['artists'][0]["name"]
+
+    await cmd.reply(f'@{cmd.user.name}, Current song is {name} by {artist}.')
+
 
 async def request_command(cmd: ChatCommand):
     if cmd.user.name.lower() in donors.keys():
@@ -263,6 +277,7 @@ async def run():
     chat.register_event(ChatEvent.READY, on_ready)
     chat.register_event(ChatEvent.MESSAGE, on_message)
     chat.register_command(REQUEST_CMD, request_command)
+    chat.register_command(SONG_CMD, song_command)
     chat.register_command(CREDIT_CMD, credit_command)
 
     chat.start()
