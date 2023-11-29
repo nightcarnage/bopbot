@@ -54,8 +54,8 @@ donors = {}
 playlist_tracks = []
 bot_ready = False
 sp = 0
-last_ci = -1
-ci_inc = 0
+#last_ci = -1
+#ci_inc = 0
 
 def cache_playlist():
 
@@ -229,6 +229,12 @@ async def request_command(cmd: ChatCommand):
                 if track['track']['id'] == tr['item']['id']:
                     break
             
+            for idx, track in enumerate(playlist_tracks):
+                if idx >= ci and track['track']['bopped']:
+                    ci += 1
+
+                
+            '''
             if ci == last_ci:
                 offset += ci_inc
             else:
@@ -237,6 +243,7 @@ async def request_command(cmd: ChatCommand):
                 ci_inc = 0
             
             ci = ci + offset
+            '''
 
             results = sp.search(q=cmd.parameter, limit=1)
             track_uris = []
