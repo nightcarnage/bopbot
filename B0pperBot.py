@@ -46,6 +46,8 @@ try:
     REQUEST_CMD = cfg['b0pperbot']['request_cmd']
     SONG_CMD = cfg['b0pperbot']['song_cmd']
     CREDIT_CMD = cfg['b0pperbot']['credit_cmd']
+    DISABLE_CREDIT_CMD = bool(cfg['b0pperbot']['disable_credit_cmd'])
+    CUMULATIVE_CREDIT = bool(cfg['b0pperbot']['cumulative_credit'])
 except:
     print('Cannot read "config.ini".')
     print('Exiting...')
@@ -127,16 +129,22 @@ async def on_message(msg: ChatMessage):
             print("dollar amount", amount)
             tipper = line[2]
             if amount >= AMOUNT_TIP:
-                #TODO currency conversion
-                if line[5].startswith('$'):
-                    credit += round(amount/AMOUNT_TIP)
+                if CUMULATIVE_CREDIT:
+                    #TODO currency conversion
+                    if line[5].startswith('$'):
+                        credit += round(amount/AMOUNT_TIP)
+                else:
+                    credit = 1
 
         if re.match(BITS_MESSAGE, msg.text):
             line = msg.text.split()
             amount = int(line[5])
             tipper = line[2]
             if amount >= AMOUNT_BITS:
-                credit += round(amount/AMOUNT_BITS)
+                if CUMULATIVE_CREDIT:
+                    credit += round(amount/AMOUNT_BITS)
+                else:
+                    credit = 1
         
         if re.match(GIFTED_MESSAGE, msg.text):
             line = msg.text.split()
@@ -144,11 +152,20 @@ async def on_message(msg: ChatMessage):
             tipper = line[0]
             tier = 1
             if int(line[5]) == 1 and amount >= AMOUNT_GIFTED_TIER1:
-                credit += round(amount/AMOUNT_GIFTED_TIER1)
+                if CUMULATIVE_CREDIT:
+                    credit += round(amount/AMOUNT_GIFTED_TIER1)
+                else:
+                    credit = 1
             if int(line[5]) == 2 and amount >= AMOUNT_GIFTED_TIER2:
-                credit += round(amount/AMOUNT_GIFTED_TIER2)
+                if CUMULATIVE_CREDIT:
+                    credit += round(amount/AMOUNT_GIFTED_TIER2)
+                else:
+                    credit = 1
             if int(line[5]) == 3 and amount >= AMOUNT_GIFTED_TIER3:
-                credit += round(amount/AMOUNT_GIFTED_TIER3)
+                if CUMULATIVE_CREDIT:
+                    credit += round(amount/AMOUNT_GIFTED_TIER3)
+                else:
+                    credit = 1
 
         tippers[tipper.lower()] = round(credit)
         if tipper: print(tipper+'\'s credit is now', str(credit))
@@ -200,7 +217,7 @@ def clean_playlist():
 
 #bot will reply with how much credit tipper has
 async def credit_command(cmd: ChatCommand):
-
+    if DISABLE_CREDIT_CMD: return
     credit = tippers.get(cmd.user.name.lower(), 0)
     await cmd.reply(f'@{cmd.user.name}, you have {credit} credit.')
 

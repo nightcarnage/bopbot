@@ -8,7 +8,9 @@ signal_bot = Streamlabs
 request_cmd = sr
 song_cmd = song
 credit_cmd = credit
+disable_credit_cmd = False
 clean_playlist = True
+cumulative_credit = True
 
 [spotify]
 client_id = 
