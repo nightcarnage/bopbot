@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
