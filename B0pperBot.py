@@ -18,6 +18,8 @@ import requests
 import readline
 import re
 
+
+#read from config.ini
 cfg = configparser.ConfigParser()
 try:
     cfg.read('config.ini')
@@ -39,7 +41,7 @@ try:
     AMOUNT_GIFTED_TIER2 = int(cfg['b0pperbot']['amount_gifted_tier2'])
     AMOUNT_GIFTED_TIER3 = int(cfg['b0pperbot']['amount_gifted_tier3'])
     AMOUNT_TIP = float(cfg['b0pperbot']['amount_tip'])
-    CLEAN_PLAYLIST = bool(cfg['b0pperbot']['clean_playlist'])
+    DO_CLEAN_PLAYLIST = bool(cfg['b0pperbot']['clean_playlist'])
     SIGNAL_BOT = cfg['b0pperbot']['signal_bot']
     REQUEST_CMD = cfg['b0pperbot']['request_cmd']
     SONG_CMD = cfg['b0pperbot']['song_cmd']
@@ -49,14 +51,14 @@ except:
     print('Exiting...')
     exit(-1)
 
+#global variables
 app_name = 'B0pperBot'
 tippers = {}
 playlist_tracks = []
 bot_ready = False
 sp = 0
-#last_ci = -1
-#ci_inc = 0
 
+#cache the playlist into a list
 def cache_playlist():
 
     print('Caching playlist...')
@@ -78,8 +80,9 @@ def cache_playlist():
 
     playlist_tracks = playlist_tracks[0]
     for track in playlist_tracks:
-        track['track']['bopped'] = False
+        track['track']['requested'] = False
 
+#setup spotify when twitch interface is ready
 async def on_ready(ready_event: EventData):
 
     global sp
@@ -100,8 +103,9 @@ async def on_ready(ready_event: EventData):
     help()
     await ready_event.chat.join_room(TARGET_CHANNEL)
 
+#parse signal bot chat notifications and calculate
+#tippers credit for song requests
 async def on_message(msg: ChatMessage):
-    #print(f'in {msg.room.name}, {msg.user.name} said: {msg.text}')
 
     global tippers
     global playlist_tracks
@@ -149,6 +153,7 @@ async def on_message(msg: ChatMessage):
         tippers[tipper.lower()] = round(credit)
         if tipper: print(tipper+'\'s credit is now', str(credit))
 
+#display help
 def help(command = ''):
     if command == '':
         print('Commands: playlist, tippers, refresh, reset, help, quit. For further help, type \
@@ -167,18 +172,22 @@ credit associated with each tipper.')
     if command == 'tippers':
         print('The "tippers" command prints the tipper\'s twitch username and their credit')
 
+
+#if clean_playlist is specificed in config.ini
+#then when program is reset or exited it will
+#remove all the requested songs from the playlist
+#to preserve the original curated playlist
 def clean_playlist():
 
-
-    global CLEAN_PLAYLIST
-    if not CLEAN_PLAYLIST: return
+    global DO_CLEAN_PLAYLIST
+    if not DO_CLEAN_PLAYLIST: return
 
     print('Removing requested songs from playlist...')
 
     i = 0
     for track in playlist_tracks:
 
-        if track['track']['bopped']:
+        if track['track']['requested']:
             tid = track['track']['id']
             pos = track['track']['pos'] - i
             track_ids = []
@@ -189,11 +198,13 @@ def clean_playlist():
             i+=1
 
 
+#bot will reply with how much credit tipper has
 async def credit_command(cmd: ChatCommand):
 
     credit = tippers.get(cmd.user.name.lower(), 0)
     await cmd.reply(f'@{cmd.user.name}, you have {credit} credit.')
 
+#bot will reply with currently playing song
 async def song_command(cmd: ChatCommand):
 
     tr = sp.currently_playing()
@@ -207,7 +218,7 @@ async def song_command(cmd: ChatCommand):
 
     await cmd.reply(f'@{cmd.user.name}, Current song is {name} by {artist}.')
 
-
+#bot will add song to playlist if tipper has credit
 async def request_command(cmd: ChatCommand):
     if cmd.user.name.lower() in tippers.keys():
         if tippers[cmd.user.name.lower()] >= 1:
@@ -220,9 +231,6 @@ async def request_command(cmd: ChatCommand):
                 return
 
             ci = 0
-            #offset = 0
-            #global last_ci
-            #global ci_inc
 
             for track in playlist_tracks:
                 ci += 1
@@ -230,20 +238,8 @@ async def request_command(cmd: ChatCommand):
                     break
             
             for idx, track in enumerate(playlist_tracks):
-                if idx >= ci and track['track']['bopped']:
+                if idx >= ci and track['track']['requested']:
                     ci += 1
-
-                
-            '''
-            if ci == last_ci:
-                offset += ci_inc
-            else:
-                offset = 0
-                last_ci = ci
-                ci_inc = 0
-            
-            ci = ci + offset
-            '''
 
             results = sp.search(q=cmd.parameter, limit=1)
             track_uris = []
@@ -252,7 +248,7 @@ async def request_command(cmd: ChatCommand):
 
                 nt = {}
                 nt['uri'] = track['uri']
-                nt['bopped'] = True
+                nt['requested'] = True
                 nt['id'] = track['id']
                 nt['pos'] = ci
                 playlist_tracks.insert(ci, {'track': nt})
@@ -264,8 +260,8 @@ async def request_command(cmd: ChatCommand):
                 print('Added requested track to position', str(ci))
 
             sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,ci)
-            #ci_inc += 1
 
+#set up twitch interface and main program loop
 async def run():
 
     global tippers
@@ -294,7 +290,10 @@ async def run():
  └─┘└─┘┴  ┴  └─┘┴└─└─┘└─┘ ┴ 
 '''
 )
-    #try:
+
+    global tippers
+    global playlist_tracks
+
     quit = False
     while not quit:
 
@@ -336,8 +335,6 @@ async def run():
             
             if cmd == "playlist":
                 pprint(playlist_tracks)
-
-    #finally:
 
     print('Leaving Twitch...')
     chat.stop()
