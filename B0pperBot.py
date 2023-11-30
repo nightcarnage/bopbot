@@ -264,7 +264,7 @@ async def request_command(cmd: ChatCommand):
                 print('Added requested track to position', str(ci))
 
             sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,ci)
-            ci_inc += 1
+            #ci_inc += 1
 
 async def run():
 
