@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
@@ -58,7 +58,6 @@ except:
 app_name = 'B0pperBot'
 tippers = {}
 playlist_tracks = []
-bot_ready = False
 sp = 0
 
 #cache the playlist into a list
@@ -101,8 +100,6 @@ async def on_ready(ready_event: EventData):
     cache_playlist()
 
     print(app_name, 'is ready.\n')
-    global bot_ready
-    bot_ready = True
     help()
     await ready_event.chat.join_room(TARGET_CHANNEL)
 
@@ -174,7 +171,7 @@ async def on_message(msg: ChatMessage):
 #display help
 def help(command = ''):
     if command == '':
-        print('Commands: playlist, tippers, refresh, reset, help, quit. For further help, type \
+        print('Commands: playlist, tippers, refresh, reset, help, quit (or exit). For further help, type \
 "help <command>".')
     if command == 'playlist':
         print('The "playlist" command prints the cachced playlist.')
@@ -315,11 +312,9 @@ async def run():
     quit = False
     while not quit:
 
-        if not bot_ready: continue
-
-        line = input('cmd: ')
+        line = input()
         line = line.split()
-
+        
         if len(line) >= 1:
             cmd = line[0]
 
