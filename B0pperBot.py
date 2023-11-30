@@ -50,7 +50,7 @@ except:
     exit(-1)
 
 app_name = 'B0pperBot'
-donors = {}
+tippers = {}
 playlist_tracks = []
 bot_ready = False
 sp = 0
@@ -103,7 +103,7 @@ async def on_ready(ready_event: EventData):
 async def on_message(msg: ChatMessage):
     #print(f'in {msg.room.name}, {msg.user.name} said: {msg.text}')
 
-    global donors
+    global tippers
     global playlist_tracks
 
     if msg.user.name.lower() == SIGNAL_BOT.lower():
@@ -113,15 +113,15 @@ async def on_message(msg: ChatMessage):
         #   username just gifted 1 Tier 1 subscriptions!
         #   Thank you username for tipping $1.00!
 
-        donor = ''
+        tipper = ''
         amount = 0
-        credit = donors.get(msg.user.name.lower(),0)
+        credit = tippers.get(msg.user.name.lower(),0)
 
         if re.match(TIP_MESSAGE, msg.text):
             line = msg.text.split()
             amount = float(line[5][1:-1])
             print("dollar amount", amount)
-            donor = line[2]
+            tipper = line[2]
             if amount >= AMOUNT_TIP:
                 #TODO currency conversion
                 if line[5].startswith('$'):
@@ -130,14 +130,14 @@ async def on_message(msg: ChatMessage):
         if re.match(BITS_MESSAGE, msg.text):
             line = msg.text.split()
             amount = int(line[5])
-            donor = line[2]
+            tipper = line[2]
             if amount >= AMOUNT_BITS:
                 credit += round(amount/AMOUNT_BITS)
         
         if re.match(GIFTED_MESSAGE, msg.text):
             line = msg.text.split()
             amount = int(line[3])
-            donor = line[0]
+            tipper = line[0]
             tier = 1
             if int(line[5]) == 1 and amount >= AMOUNT_GIFTED_TIER1:
                 credit += round(amount/AMOUNT_GIFTED_TIER1)
@@ -146,12 +146,12 @@ async def on_message(msg: ChatMessage):
             if int(line[5]) == 3 and amount >= AMOUNT_GIFTED_TIER3:
                 credit += round(amount/AMOUNT_GIFTED_TIER3)
 
-        donors[donor.lower()] = round(credit)
-        if donor: print(donor+'\'s credit is now', str(credit))
+        tippers[tipper.lower()] = round(credit)
+        if tipper: print(tipper+'\'s credit is now', str(credit))
 
 def help(command = ''):
     if command == '':
-        print('Commands: playlist, donors, refresh, reset, help, quit. For further help, type \
+        print('Commands: playlist, tippers, refresh, reset, help, quit. For further help, type \
 "help <command>".')
     if command == 'playlist':
         print('The "playlist" command prints the cachced playlist.')
@@ -162,10 +162,10 @@ def help(command = ''):
     if command == 'reset':
         print('The "reset" command reverts', app_name, 'back to the startup state.')
     if command == 'refresh':
-        print('The "refresh" command is like reset but keeps the donor list and \
-credit associated with each donor.')
-    if command == 'donors':
-        print('The "donors" command prints the donor\'s twitch username and their credit')
+        print('The "refresh" command is like reset but keeps the tippers list and \
+credit associated with each tipper.')
+    if command == 'tippers':
+        print('The "tippers" command prints the tipper\'s twitch username and their credit')
 
 def clean_playlist():
 
@@ -191,7 +191,7 @@ def clean_playlist():
 
 async def credit_command(cmd: ChatCommand):
 
-    credit = donors.get(cmd.user.name.lower(), 0)
+    credit = tippers.get(cmd.user.name.lower(), 0)
     await cmd.reply(f'@{cmd.user.name}, you have {credit} credit.')
 
 async def song_command(cmd: ChatCommand):
@@ -209,9 +209,9 @@ async def song_command(cmd: ChatCommand):
 
 
 async def request_command(cmd: ChatCommand):
-    if cmd.user.name.lower() in donors.keys():
-        if donors[cmd.user.name.lower()] >= 1:
-            donors[cmd.user.name.lower()] -= 1
+    if cmd.user.name.lower() in tippers.keys():
+        if tippers[cmd.user.name.lower()] >= 1:
+            tippers[cmd.user.name.lower()] -= 1
 
             tr = sp.currently_playing()
 
@@ -268,7 +268,7 @@ async def request_command(cmd: ChatCommand):
 
 async def run():
 
-    global donors
+    global tippers
     global playlist_tracks
 
     twitch = await Twitch(TWITCH_CLIENT_ID, TWITCH_SECRET)
@@ -315,8 +315,8 @@ async def run():
                 quit = True
             
             if cmd == 'reset':
-                print('Clearing donor list...')
-                donors = {}
+                print('Clearing tippers list...')
+                tippers = {}
                 
                 clean_playlist()
 
@@ -331,8 +331,8 @@ async def run():
 
                 cache_playlist()
             
-            if cmd == "donors":
-                pprint(donors)
+            if cmd == "tippers":
+                pprint(tippers)
             
             if cmd == "playlist":
                 pprint(playlist_tracks)
