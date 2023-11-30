@@ -220,9 +220,9 @@ async def request_command(cmd: ChatCommand):
                 return
 
             ci = 0
-            offset = 0
-            global last_ci
-            global ci_inc
+            #offset = 0
+            #global last_ci
+            #global ci_inc
 
             for track in playlist_tracks:
                 ci += 1
