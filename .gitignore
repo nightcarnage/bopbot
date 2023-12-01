@@ -3,6 +3,7 @@ build/
 dist/
 *.spec
 *.cache
+config.ini.bkp
 config.ini
 gui/
 user_token.json

@@ -8,8 +8,6 @@ from twitchAPI.oauth import UserAuthenticationStorageHelper
 from twitchAPI.type import AuthScope, ChatEvent
 from twitchAPI.chat import Chat, EventData, ChatMessage, ChatSub, ChatCommand
 USER_SCOPE = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
-
-from sys import exit
 import configparser
 
 from pprint import pprint
@@ -19,40 +17,35 @@ import requests
 import readline
 import re
 
-
 #read from config.ini
 cfg = configparser.ConfigParser()
-try:
-    cfg.read('config.ini')
 
-    TWITCH_CLIENT_ID = cfg['twitch']['client_id']
-    TWITCH_SECRET = cfg['twitch']['secret_key']
-    TARGET_CHANNEL = cfg['twitch']['channel']
-    GIFTED_MESSAGE = cfg['twitch']['gifted_message']
-    BITS_MESSAGE = cfg['twitch']['bits_message']
-    TIP_MESSAGE = cfg['twitch']['tip_message']
+cfg.read('config.ini')
 
-    SPOTIFY_CLIENT_ID = cfg['spotify']['client_id']
-    SPOTIFY_SECRET = cfg['spotify']['secret_key']
-    SPOTIFY_PLAYLIST_URI = cfg['spotify']['playlist_uri']
-    SPOTIFY_REQUEST_URI = cfg['spotify']['request_uri']
+TWITCH_CLIENT_ID = cfg['twitch']['client_id']
+TWITCH_SECRET = cfg['twitch']['secret_key']
+TARGET_CHANNEL = cfg['twitch']['channel']
+GIFTED_MESSAGE = cfg['twitch']['gifted_message']
+BITS_MESSAGE = cfg['twitch']['bits_message']
+TIP_MESSAGE = cfg['twitch']['tip_message']
 
-    AMOUNT_BITS = int(cfg['b0pperbot']['amount_bits'])
-    AMOUNT_GIFTED_TIER1 = int(cfg['b0pperbot']['amount_gifted_tier1'])
-    AMOUNT_GIFTED_TIER2 = int(cfg['b0pperbot']['amount_gifted_tier2'])
-    AMOUNT_GIFTED_TIER3 = int(cfg['b0pperbot']['amount_gifted_tier3'])
-    AMOUNT_TIP = float(cfg['b0pperbot']['amount_tip'])
-    DO_CLEAN_PLAYLIST = bool(cfg['b0pperbot']['clean_playlist'])
-    SIGNAL_BOT = cfg['b0pperbot']['signal_bot']
-    REQUEST_CMD = cfg['b0pperbot']['request_cmd']
-    SONG_CMD = cfg['b0pperbot']['song_cmd']
-    CREDIT_CMD = cfg['b0pperbot']['credit_cmd']
-    DISABLE_CREDIT_CMD = bool(cfg['b0pperbot']['disable_credit_cmd'])
-    CUMULATIVE_CREDIT = bool(cfg['b0pperbot']['cumulative_credit'])
-except:
-    print('Cannot read "config.ini".')
-    print('Exiting...')
-    exit(-1)
+SPOTIFY_CLIENT_ID = cfg['spotify']['client_id']
+SPOTIFY_SECRET = cfg['spotify']['secret_key']
+SPOTIFY_PLAYLIST_URI = cfg['spotify']['playlist_uri']
+SPOTIFY_REQUEST_URI = cfg['spotify']['request_uri']
+
+AMOUNT_BITS = int(cfg['b0pperbot']['amount_bits'])
+AMOUNT_GIFTED_TIER1 = int(cfg['b0pperbot']['amount_gifted_tier1'])
+AMOUNT_GIFTED_TIER2 = int(cfg['b0pperbot']['amount_gifted_tier2'])
+AMOUNT_GIFTED_TIER3 = int(cfg['b0pperbot']['amount_gifted_tier3'])
+AMOUNT_TIP = float(cfg['b0pperbot']['amount_tip'])
+DO_CLEAN_PLAYLIST = bool(cfg['b0pperbot']['clean_playlist'])
+SIGNAL_BOT = cfg['b0pperbot']['signal_bot']
+REQUEST_CMD = cfg['b0pperbot']['request_cmd']
+SONG_CMD = cfg['b0pperbot']['song_cmd']
+CREDIT_CMD = cfg['b0pperbot']['credit_cmd']
+DISABLE_CREDIT_CMD = bool(cfg['b0pperbot']['disable_credit_cmd'])
+CUMULATIVE_CREDIT = bool(cfg['b0pperbot']['cumulative_credit'])
 
 #global variables
 app_name = 'B0pperBot'
@@ -96,7 +89,7 @@ async def on_ready(ready_event: EventData):
         redirect_uri=SPOTIFY_REQUEST_URI,
         scope=scope
         ))
-    
+
     cache_playlist()
 
     print(app_name, 'is ready.\n')
@@ -300,9 +293,8 @@ async def run():
     print()
     print(
 '''
- ┌┐ ┌─┐┌─┐┌─┐┌─┐┬─┐┌┐ ┌─┐┌┬┐
- ├┴┐│ │├─┘├─┘├┤ ├┬┘├┴┐│ │ │ 
- └─┘└─┘┴  ┴  └─┘┴└─└─┘└─┘ ┴ 
+ ██▄ █▀█ █▀▄ █▀▄ ██▀ █▀▄ ██▄ ▄▀▄ ▀█▀
+ █▄█ █▄█ █▀  █▀  █▄▄ █▀▄ █▄█ ▀▄▀  █ 
 '''
 )
 

@@ -1,6 +1,10 @@
+#!/usr/bin/env python3
 import PyInstaller.__main__
+import shutil
 
 PyInstaller.__main__.run([
-    'B0pperBot.py',
+    'b0pperbot.py',
     '--onefile'
 ])
+
+shutil.copyfile('./config.ini.template','./dist/config.ini')
