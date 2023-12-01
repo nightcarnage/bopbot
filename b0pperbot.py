@@ -14,7 +14,6 @@ from pprint import pprint
 
 import asyncio
 import requests
-import readline
 import re
 
 #read from config.ini
