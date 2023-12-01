@@ -1,3 +1,2 @@
 - improve regexp
 - more testing
-- write README
