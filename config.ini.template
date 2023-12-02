@@ -1,9 +1,9 @@
 [b0pperbot]
-amount_bits = 100
+amount_bits = 1000
 amount_gifted_tier1 = 3
 amount_gifted_tier2 = 2
 amount_gifted_tier3 = 1
-amount_tip = 1.00
+amount_tip = 10.00
 signal_bot = Streamlabs
 request_cmd = sr
 song_cmd = song
@@ -15,7 +15,7 @@ cumulative_credit = True
 [spotify]
 client_id = 
 secret_key = 
-playlist_uri = 
+playlist_uri = spotify:playlist:?
 request_uri = http://localhost:3000
 
 [twitch]

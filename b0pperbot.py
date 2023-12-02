@@ -17,10 +17,15 @@ import asyncio
 import requests
 import re
 
+#global variables
+app_name = 'B0pperBot'
+tippers = {}
+playlist_tracks = []
+sp = 0
+
 def fail(code = -1):
     print('Exiting...')
     exit(code)
-
 
 #read from config.ini
 cfg = configparser.ConfigParser()
@@ -39,29 +44,22 @@ try:
     SPOTIFY_SECRET = cfg['spotify']['secret_key']
     SPOTIFY_PLAYLIST_URI = cfg['spotify']['playlist_uri']
     SPOTIFY_REQUEST_URI = cfg['spotify']['request_uri']
+
+    AMOUNT_BITS = cfg.getint('b0pperbot', 'amount_bits')
+    AMOUNT_GIFTED_TIER1 = cfg.getint('b0pperbot', 'amount_gifted_tier1')
+    AMOUNT_GIFTED_TIER2 = cfg.getint('b0pperbot','amount_gifted_tier2')
+    AMOUNT_GIFTED_TIER3 = cfg.getint('b0pperbot', 'amount_gifted_tier3')
+    AMOUNT_TIP = cfg.getfloat('b0pperbot', 'amount_tip')
+    DO_CLEAN_PLAYLIST = cfg.getboolean('b0pperbot', 'clean_playlist')
+    SIGNAL_BOT = cfg.get('b0pperbot', 'signal_bot')
+    REQUEST_CMD = cfg.get('b0pperbot', 'request_cmd')
+    SONG_CMD = cfg.get('b0pperbot', 'song_cmd')
+    CREDIT_CMD = cfg.get('b0pperbot', 'credit_cmd')
+    DISABLE_CREDIT_CMD = cfg.getboolean('b0pperbot', 'disable_credit_cmd')
+    CUMULATIVE_CREDIT = cfg.getboolean('b0pperbot', 'cumulative_credit')
 except Exception:
     print('Error reading "config.ini".')
     fail()
-
-    AMOUNT_BITS = int(cfg.get('b0pperbot', 'amount_bits', 100))
-    AMOUNT_GIFTED_TIER1 = int(cfg.get('b0pperbot', 'amount_gifted_tier1', 3))
-    AMOUNT_GIFTED_TIER2 = int(cfg.get('b0pperbot','amount_gifted_tier2', 2))
-    AMOUNT_GIFTED_TIER3 = int(cfg.get('b0pperbot', 'amount_gifted_tier3', 1))
-    AMOUNT_TIP = float(cfg.get('b0pperbot', 'amount_tip', 10.00))
-    DO_CLEAN_PLAYLIST = bool(cfg.get('b0pperbot', 'clean_playlist', True))
-    SIGNAL_BOT = cfg.get('b0pperbot', 'signal_bot', 'Streamlabs')
-    REQUEST_CMD = cfg.get('b0pperbot', 'request_cmd', 'sr')
-    SONG_CMD = cfg.get('b0pperbot', 'song_cmd', 'song')
-    CREDIT_CMD = cfg.get('b0pperbot', 'credit_cmd', 'credit')
-    DISABLE_CREDIT_CMD = bool(cfg.get('b0pperbot', 'disable_credit_cmd', False))
-    CUMULATIVE_CREDIT = bool(cfg.get('b0pperbot', 'cumulative_credit', True))
-
-
-#global variables
-app_name = 'B0pperBot'
-tippers = {}
-playlist_tracks = []
-sp = 0
 
 #cache the playlist into a list
 def cache_playlist():
@@ -70,22 +68,26 @@ def cache_playlist():
 
     global playlist_tracks
     offset = 0
-    while True:
-        response = sp.playlist_items(SPOTIFY_PLAYLIST_URI,
-                offset=offset,
-                fields='items.track.id,items.track.uri,total',
-                additional_types=['track'])
+    try:
+        while True:
+            response = sp.playlist_items(SPOTIFY_PLAYLIST_URI,
+                    offset=offset,
+                    fields='items.track.id,items.track.uri,total',
+                    additional_types=['track'])
 
-        if len(response['items']) == 0:
-            break
-        
-        playlist_tracks.append(response['items'])
+            if len(response['items']) == 0:
+                break
+            
+            playlist_tracks.append(response['items'])
 
-        offset = offset + len(response['items'])
+            offset = offset + len(response['items'])
 
-    playlist_tracks = playlist_tracks[0]
-    for track in playlist_tracks:
-        track['track']['requested'] = False
+        playlist_tracks = playlist_tracks[0]
+        for track in playlist_tracks:
+            track['track']['requested'] = False
+    except Exception:
+        print('Error getting Spotify playlist.')
+        fail()
 
 #setup playlist when Twitch is ready and Spotify connection established
 async def on_ready(ready_event: EventData):
@@ -208,7 +210,7 @@ def clean_playlist():
 
 #bot will reply with how much credit tipper has
 async def credit_command(cmd: ChatCommand):
-    if not DISABLE_CREDIT_CMD: return
+    if DISABLE_CREDIT_CMD: return
     credit = tippers.get(cmd.user.name.lower(), 0)
     await cmd.reply(f'@{cmd.user.name}, you have {credit} song request credit(s).')
 
