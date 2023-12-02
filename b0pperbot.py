@@ -39,22 +39,23 @@ try:
     SPOTIFY_SECRET = cfg['spotify']['secret_key']
     SPOTIFY_PLAYLIST_URI = cfg['spotify']['playlist_uri']
     SPOTIFY_REQUEST_URI = cfg['spotify']['request_uri']
-
-    AMOUNT_BITS = int(cfg['b0pperbot']['amount_bits'])
-    AMOUNT_GIFTED_TIER1 = int(cfg['b0pperbot']['amount_gifted_tier1'])
-    AMOUNT_GIFTED_TIER2 = int(cfg['b0pperbot']['amount_gifted_tier2'])
-    AMOUNT_GIFTED_TIER3 = int(cfg['b0pperbot']['amount_gifted_tier3'])
-    AMOUNT_TIP = float(cfg['b0pperbot']['amount_tip'])
-    DO_CLEAN_PLAYLIST = bool(cfg['b0pperbot']['clean_playlist'])
-    SIGNAL_BOT = cfg['b0pperbot']['signal_bot']
-    REQUEST_CMD = cfg['b0pperbot']['request_cmd']
-    SONG_CMD = cfg['b0pperbot']['song_cmd']
-    CREDIT_CMD = cfg['b0pperbot']['credit_cmd']
-    DISABLE_CREDIT_CMD = bool(cfg['b0pperbot']['disable_credit_cmd'])
-    CUMULATIVE_CREDIT = bool(cfg['b0pperbot']['cumulative_credit'])
 except Exception:
     print('Error reading "config.ini".')
     fail()
+
+    AMOUNT_BITS = int(cfg.get('b0pperbot', 'amount_bits', 100))
+    AMOUNT_GIFTED_TIER1 = int(cfg.get('b0pperbot', 'amount_gifted_tier1', 3))
+    AMOUNT_GIFTED_TIER2 = int(cfg.get('b0pperbot','amount_gifted_tier2', 2))
+    AMOUNT_GIFTED_TIER3 = int(cfg.get('b0pperbot', 'amount_gifted_tier3', 1))
+    AMOUNT_TIP = float(cfg.get('b0pperbot', 'amount_tip', 10.00))
+    DO_CLEAN_PLAYLIST = bool(cfg.get('b0pperbot', 'clean_playlist', True))
+    SIGNAL_BOT = cfg.get('b0pperbot', 'signal_bot', 'Streamlabs')
+    REQUEST_CMD = cfg.get('b0pperbot', 'request_cmd', 'sr')
+    SONG_CMD = cfg.get('b0pperbot', 'song_cmd', 'song')
+    CREDIT_CMD = cfg.get('b0pperbot', 'credit_cmd', 'credit')
+    DISABLE_CREDIT_CMD = bool(cfg.get('b0pperbot', 'disable_credit_cmd', False))
+    CUMULATIVE_CREDIT = bool(cfg.get('b0pperbot', 'cumulative_credit', True))
+
 
 #global variables
 app_name = 'B0pperBot'
