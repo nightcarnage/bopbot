@@ -10,41 +10,51 @@ from twitchAPI.chat import Chat, EventData, ChatMessage, ChatSub, ChatCommand
 USER_SCOPE = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
 import configparser
 
+from sys import exit
 from pprint import pprint
 
 import asyncio
 import requests
 import re
 
+def fail(code = -1):
+    print('Exiting...')
+    exit(code)
+
+
 #read from config.ini
 cfg = configparser.ConfigParser()
 
-cfg.read('config.ini')
+try:
+    cfg.read('config.ini')
 
-TWITCH_CLIENT_ID = cfg['twitch']['client_id']
-TWITCH_SECRET = cfg['twitch']['secret_key']
-TARGET_CHANNEL = cfg['twitch']['channel']
-GIFTED_MESSAGE = cfg['twitch']['gifted_message']
-BITS_MESSAGE = cfg['twitch']['bits_message']
-TIP_MESSAGE = cfg['twitch']['tip_message']
+    TWITCH_CLIENT_ID = cfg['twitch']['client_id']
+    TWITCH_SECRET = cfg['twitch']['secret_key']
+    TARGET_CHANNEL = cfg['twitch']['channel']
+    GIFTED_MESSAGE = cfg['twitch']['gifted_message']
+    BITS_MESSAGE = cfg['twitch']['bits_message']
+    TIP_MESSAGE = cfg['twitch']['tip_message']
 
-SPOTIFY_CLIENT_ID = cfg['spotify']['client_id']
-SPOTIFY_SECRET = cfg['spotify']['secret_key']
-SPOTIFY_PLAYLIST_URI = cfg['spotify']['playlist_uri']
-SPOTIFY_REQUEST_URI = cfg['spotify']['request_uri']
+    SPOTIFY_CLIENT_ID = cfg['spotify']['client_id']
+    SPOTIFY_SECRET = cfg['spotify']['secret_key']
+    SPOTIFY_PLAYLIST_URI = cfg['spotify']['playlist_uri']
+    SPOTIFY_REQUEST_URI = cfg['spotify']['request_uri']
 
-AMOUNT_BITS = int(cfg['b0pperbot']['amount_bits'])
-AMOUNT_GIFTED_TIER1 = int(cfg['b0pperbot']['amount_gifted_tier1'])
-AMOUNT_GIFTED_TIER2 = int(cfg['b0pperbot']['amount_gifted_tier2'])
-AMOUNT_GIFTED_TIER3 = int(cfg['b0pperbot']['amount_gifted_tier3'])
-AMOUNT_TIP = float(cfg['b0pperbot']['amount_tip'])
-DO_CLEAN_PLAYLIST = bool(cfg['b0pperbot']['clean_playlist'])
-SIGNAL_BOT = cfg['b0pperbot']['signal_bot']
-REQUEST_CMD = cfg['b0pperbot']['request_cmd']
-SONG_CMD = cfg['b0pperbot']['song_cmd']
-CREDIT_CMD = cfg['b0pperbot']['credit_cmd']
-DISABLE_CREDIT_CMD = bool(cfg['b0pperbot']['disable_credit_cmd'])
-CUMULATIVE_CREDIT = bool(cfg['b0pperbot']['cumulative_credit'])
+    AMOUNT_BITS = int(cfg['b0pperbot']['amount_bits'])
+    AMOUNT_GIFTED_TIER1 = int(cfg['b0pperbot']['amount_gifted_tier1'])
+    AMOUNT_GIFTED_TIER2 = int(cfg['b0pperbot']['amount_gifted_tier2'])
+    AMOUNT_GIFTED_TIER3 = int(cfg['b0pperbot']['amount_gifted_tier3'])
+    AMOUNT_TIP = float(cfg['b0pperbot']['amount_tip'])
+    DO_CLEAN_PLAYLIST = bool(cfg['b0pperbot']['clean_playlist'])
+    SIGNAL_BOT = cfg['b0pperbot']['signal_bot']
+    REQUEST_CMD = cfg['b0pperbot']['request_cmd']
+    SONG_CMD = cfg['b0pperbot']['song_cmd']
+    CREDIT_CMD = cfg['b0pperbot']['credit_cmd']
+    DISABLE_CREDIT_CMD = bool(cfg['b0pperbot']['disable_credit_cmd'])
+    CUMULATIVE_CREDIT = bool(cfg['b0pperbot']['cumulative_credit'])
+except Exception:
+    print('Error reading "config.ini".')
+    fail()
 
 #global variables
 app_name = 'B0pperBot'
@@ -80,14 +90,18 @@ def cache_playlist():
 async def on_ready(ready_event: EventData):
 
     global sp
-    scope = 'user-read-currently-playing user-library-read \
-            playlist-modify-private playlist-modify-public'
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-        client_id=SPOTIFY_CLIENT_ID,
-        client_secret=SPOTIFY_SECRET,
-        redirect_uri=SPOTIFY_REQUEST_URI,
-        scope=scope
-        ))
+    try:
+        scope = 'user-read-currently-playing user-library-read \
+                playlist-modify-private playlist-modify-public'
+        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
+            client_id=SPOTIFY_CLIENT_ID,
+            client_secret=SPOTIFY_SECRET,
+            redirect_uri=SPOTIFY_REQUEST_URI,
+            scope=scope
+            ))
+    except Exception:
+        print('Error connecting to Spotify.')
+        fail()
 
     cache_playlist()
 
@@ -207,7 +221,7 @@ def clean_playlist():
 
 #bot will reply with how much credit tipper has
 async def credit_command(cmd: ChatCommand):
-    if DISABLE_CREDIT_CMD: return
+    if not DISABLE_CREDIT_CMD: return
     credit = tippers.get(cmd.user.name.lower(), 0)
     await cmd.reply(f'@{cmd.user.name}, you have {credit} song request credit(s).')
 
@@ -274,20 +288,28 @@ async def run():
     global tippers
     global playlist_tracks
 
-    twitch = await Twitch(TWITCH_CLIENT_ID, TWITCH_SECRET)
-    auth = UserAuthenticator(twitch, USER_SCOPE)
+    try:
+        twitch = await Twitch(TWITCH_CLIENT_ID, TWITCH_SECRET)
+        auth = UserAuthenticator(twitch, USER_SCOPE)
 
-    token, refresh_token = await auth.authenticate()
-    await twitch.set_user_authentication(token, USER_SCOPE, refresh_token)
+        token, refresh_token = await auth.authenticate()
+        await twitch.set_user_authentication(token, USER_SCOPE, refresh_token)
+    except Exception:
+        print('Error connecting to Twitch.')
+        fail()
 
-    chat = await Chat(twitch)
-    chat.register_event(ChatEvent.READY, on_ready)
-    chat.register_event(ChatEvent.MESSAGE, on_message)
-    chat.register_command(REQUEST_CMD, request_command)
-    chat.register_command(SONG_CMD, song_command)
-    chat.register_command(CREDIT_CMD, credit_command)
+    try:
+        chat = await Chat(twitch)
+        chat.register_event(ChatEvent.READY, on_ready)
+        chat.register_event(ChatEvent.MESSAGE, on_message)
+        chat.register_command(REQUEST_CMD, request_command)
+        chat.register_command(SONG_CMD, song_command)
+        chat.register_command(CREDIT_CMD, credit_command)
 
-    chat.start()
+        chat.start()
+    except Exception:
+        print('Error enterting chat and registering commands.')
+        fail()
 
     print()
     print(
