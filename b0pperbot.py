@@ -86,22 +86,8 @@ def cache_playlist():
     for track in playlist_tracks:
         track['track']['requested'] = False
 
-#setup spotify when twitch interface is ready
+#setup playlist when Twitch is ready and Spotify connection established
 async def on_ready(ready_event: EventData):
-
-    global sp
-    try:
-        scope = 'user-read-currently-playing user-library-read \
-                playlist-modify-private playlist-modify-public'
-        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-            client_id=SPOTIFY_CLIENT_ID,
-            client_secret=SPOTIFY_SECRET,
-            redirect_uri=SPOTIFY_REQUEST_URI,
-            scope=scope
-            ))
-    except Exception:
-        print('Error connecting to Spotify.')
-        fail()
 
     cache_playlist()
 
@@ -296,6 +282,20 @@ async def run():
         await twitch.set_user_authentication(token, USER_SCOPE, refresh_token)
     except Exception:
         print('Error connecting to Twitch.')
+        fail()
+
+    global sp
+    try:
+        scope = 'user-read-currently-playing user-library-read \
+                playlist-modify-private playlist-modify-public'
+        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
+            client_id=SPOTIFY_CLIENT_ID,
+            client_secret=SPOTIFY_SECRET,
+            redirect_uri=SPOTIFY_REQUEST_URI,
+            scope=scope
+            ))
+    except Exception:
+        print('Error connecting to Spotify.')
         fail()
 
     try:
