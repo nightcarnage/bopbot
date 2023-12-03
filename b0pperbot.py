@@ -225,7 +225,7 @@ async def song_command(cmd: ChatCommand):
     name = tr['item']['name']
     artist = tr['item']['artists'][0]["name"]
 
-    await cmd.reply(f'@{cmd.user.name}, Current song is {name} by {artist}.')
+    await cmd.reply(f'@{cmd.user.name}, current song is {name} by {artist}.')
 
 #bot will add song to playlist if tipper has credit
 async def request_command(cmd: ChatCommand):
