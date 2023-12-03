@@ -161,8 +161,9 @@ async def on_message(msg: ChatMessage):
                 else:
                     credit = 1
 
-        tippers[tipper.lower()] = round(credit)
-        if tipper: print(tipper+'\'s credit is now', str(credit))
+        if tipper:
+            tippers[tipper.lower()] = round(credit)
+            print(tipper + '\'s credit is now', str(credit))
 
 #display help
 def help(command = ''):
