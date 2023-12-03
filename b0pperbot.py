@@ -7,7 +7,6 @@ from twitchAPI.oauth import UserAuthenticator
 from twitchAPI.oauth import UserAuthenticationStorageHelper
 from twitchAPI.type import AuthScope, ChatEvent
 from twitchAPI.chat import Chat, EventData, ChatMessage, ChatSub, ChatCommand
-USER_SCOPE = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
 import configparser
 
 from sys import exit
@@ -278,11 +277,12 @@ async def run():
     global playlist_tracks
 
     try:
+        twitch_scope = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
         twitch = await Twitch(TWITCH_CLIENT_ID, TWITCH_SECRET)
-        auth = UserAuthenticator(twitch, USER_SCOPE)
+        auth = UserAuthenticator(twitch, twitch_scope)
 
         token, refresh_token = await auth.authenticate()
-        await twitch.set_user_authentication(token, USER_SCOPE, refresh_token)
+        await twitch.set_user_authentication(token, twitch_scope, refresh_token)
     except Exception:
         print('Error connecting to Twitch.')
         fail()
