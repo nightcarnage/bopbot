@@ -119,8 +119,8 @@ async def on_message(msg: ChatMessage):
             line = msg.text.split()
             amount = float(line[5][1:-1])
             print("dollar amount", amount)
-            tipper = line[2]
             if amount >= AMOUNT_TIP:
+                tipper = line[2]
                 if CUMULATIVE_CREDIT:
                     #TODO currency conversion
                     if line[5].startswith('$'):
@@ -131,8 +131,8 @@ async def on_message(msg: ChatMessage):
         if re.match(BITS_MESSAGE, msg.text):
             line = msg.text.split()
             amount = int(line[5])
-            tipper = line[2]
             if amount >= AMOUNT_BITS:
+                tipper = line[2]
                 if CUMULATIVE_CREDIT:
                     credit += round(amount/AMOUNT_BITS)
                 else:
@@ -141,19 +141,21 @@ async def on_message(msg: ChatMessage):
         if re.match(GIFTED_MESSAGE, msg.text):
             line = msg.text.split()
             amount = int(line[3])
-            tipper = line[0]
             tier = 1
             if int(line[5]) == 1 and amount >= AMOUNT_GIFTED_TIER1:
+                tipper = line[0]
                 if CUMULATIVE_CREDIT:
                     credit += round(amount/AMOUNT_GIFTED_TIER1)
                 else:
                     credit = 1
             if int(line[5]) == 2 and amount >= AMOUNT_GIFTED_TIER2:
+                tipper = line[0]
                 if CUMULATIVE_CREDIT:
                     credit += round(amount/AMOUNT_GIFTED_TIER2)
                 else:
                     credit = 1
             if int(line[5]) == 3 and amount >= AMOUNT_GIFTED_TIER3:
+                tipper = line[0]
                 if CUMULATIVE_CREDIT:
                     credit += round(amount/AMOUNT_GIFTED_TIER3)
                 else:
@@ -165,9 +167,9 @@ async def on_message(msg: ChatMessage):
 #display help
 def help(command = ''):
     if command == '':
-        print('Commands: playlist, tippers, refresh, reset, help, quit (or exit). For further help, type \
+        print('Commands: tippers, refresh, reset, help, playlist (debug), quit (or exit). For further help, type \
 "help <command>".')
-    if command == 'playlist':
+    if command == 'playlist (debug)':
         print('The "playlist" command prints the cachced playlist.')
     if command == 'quit':
         print('The "quit" command deactivates', app_name, 'and exits the program.')
