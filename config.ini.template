@@ -9,6 +9,8 @@ request_cmd = sr
 song_cmd = song
 credit_cmd = credit
 disable_credit_cmd = False
+disable_request_cmd = False
+disable_song_cmd = False
 clean_playlist = True
 cumulative_credit = True
 

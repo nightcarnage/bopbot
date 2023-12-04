@@ -55,6 +55,8 @@ try:
     SONG_CMD = cfg.get('b0pperbot', 'song_cmd')
     CREDIT_CMD = cfg.get('b0pperbot', 'credit_cmd')
     DISABLE_CREDIT_CMD = cfg.getboolean('b0pperbot', 'disable_credit_cmd')
+    DISABLE_SONG_CMD = cfg.getboolean('b0pperbot', 'disable_song_cmd')
+    DISABLE_REQUEST_CMD = cfg.getboolean('b0pperbot', 'disable_request_cmd')
     CUMULATIVE_CREDIT = cfg.getboolean('b0pperbot', 'cumulative_credit')
 except Exception:
     print('Error reading "config.ini".')
@@ -100,6 +102,8 @@ async def on_ready(ready_event: EventData):
 #parse signal bot chat notifications and calculate
 #tippers credit for song requests
 async def on_message(msg: ChatMessage):
+
+    if DISABLE_REQUEST_CMD: return
 
     global tippers
     global playlist_tracks
@@ -168,7 +172,7 @@ async def on_message(msg: ChatMessage):
 #display help
 def help(command = ''):
     if command == '':
-        print('Commands: tippers, refresh, reset, help, quit (or exit). For further help, type \
+        print('Commands: stop, start, tippers, refresh, reset, help, quit (or exit). For further help, type \
 "help <command>".')
     if command == 'quit':
         print('The "quit" command deactivates', app_name, 'and exits the program.')
@@ -181,7 +185,10 @@ def help(command = ''):
 credit associated with each tipper.')
     if command == 'tippers':
         print('The "tippers" command prints the tipper\'s twitch username and their credit')
-
+    if command == 'start':
+        print('The "start" command enables song requests.')
+    if command == 'stop':
+        print('The "stop" command disables song requests.')
 
 #if clean_playlist is specificed in config.ini
 #then when program is reset or exited it will
@@ -217,6 +224,8 @@ async def credit_command(cmd: ChatCommand):
 #bot will reply with currently playing song
 async def song_command(cmd: ChatCommand):
 
+    if DISABLE_SONG_CMD: return
+
     tr = sp.currently_playing()
 
     if tr == None:
@@ -230,6 +239,9 @@ async def song_command(cmd: ChatCommand):
 
 #bot will add song to playlist if tipper has credit
 async def request_command(cmd: ChatCommand):
+
+    if DISABLE_REQUEST_CMD: return
+
     if cmd.user.name.lower() in tippers.keys():
         if tippers[cmd.user.name.lower()] >= 1:
             tippers[cmd.user.name.lower()] -= 1
@@ -270,6 +282,14 @@ async def request_command(cmd: ChatCommand):
                 print('Added requested track to position', str(ci))
 
             sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,ci)
+
+def request_start():
+    global DISABLE_REQUEST_CMD
+    DISABLE_REQUEST_CMD = False
+
+def request_stop():
+    global DISABLE_REQUEST_CMD
+    DISABLE_REQUEST_CMD = True
 
 #set up twitch interface and main program loop
 async def run():
@@ -362,11 +382,17 @@ async def run():
 
                 cache_playlist()
             
-            if cmd == "tippers":
+            if cmd == 'tippers':
                 pprint(tippers)
             
-            if cmd == "playlist":
+            if cmd == 'playlist':
                 pprint(playlist_tracks)
+            
+            if cmd == 'start':
+                request_start()
+            
+            if cmd == 'stop':
+                request_stop()
 
     print('Leaving Twitch...')
     chat.stop()
