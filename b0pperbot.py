@@ -286,10 +286,12 @@ async def request_command(cmd: ChatCommand):
 def request_start():
     global DISABLE_REQUEST_CMD
     DISABLE_REQUEST_CMD = False
+    print('Requests are enabled.')
 
 def request_stop():
     global DISABLE_REQUEST_CMD
     DISABLE_REQUEST_CMD = True
+    print('Requests are disabled.')
 
 #set up twitch interface and main program loop
 async def run():
