@@ -279,7 +279,19 @@ async def run():
     global tippers
     global playlist_tracks
 
+    print()
+    print(
+'''
+ ██▄ █▀█ █▀▄ █▀▄ ██▀ █▀▄ ██▄ ▄▀▄ ▀█▀
+ █▄█ █▄█ █▀  █▀  █▄▄ █▀▄ █▄█ ▀▄▀  █ 
+'''
+)
+    print()
+
+    print(app_name, 'is starting...')
+
     try:
+        print('Authenticating with Twitch...')
         twitch_scope = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
         twitch = await Twitch(TWITCH_CLIENT_ID, TWITCH_SECRET)
         auth = UserAuthenticator(twitch, twitch_scope)
@@ -287,11 +299,12 @@ async def run():
         token, refresh_token = await auth.authenticate()
         await twitch.set_user_authentication(token, twitch_scope, refresh_token)
     except Exception:
-        print('Error connecting to Twitch.')
+        print('Error conneceting to Twitch.')
         fail()
 
     global sp
     try:
+        print('Authenticating with Spotify...')
         scope = 'user-read-currently-playing user-library-read \
                 playlist-modify-private playlist-modify-public'
         sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
@@ -316,17 +329,6 @@ async def run():
     except Exception:
         print('Error enterting chat and registering commands.')
         fail()
-
-    print()
-    print(
-'''
- ██▄ █▀█ █▀▄ █▀▄ ██▀ █▀▄ ██▄ ▄▀▄ ▀█▀
- █▄█ █▄█ █▀  █▀  █▄▄ █▀▄ █▄█ ▀▄▀  █ 
-'''
-)
-
-    global tippers
-    global playlist_tracks
 
     quit = False
     while not quit:
