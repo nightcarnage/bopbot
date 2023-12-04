@@ -168,10 +168,8 @@ async def on_message(msg: ChatMessage):
 #display help
 def help(command = ''):
     if command == '':
-        print('Commands: tippers, refresh, reset, help, playlist (debug), quit (or exit). For further help, type \
+        print('Commands: tippers, refresh, reset, help, quit (or exit). For further help, type \
 "help <command>".')
-    if command == 'playlist (debug)':
-        print('The "playlist" command prints the cachced playlist.')
     if command == 'quit':
         print('The "quit" command deactivates', app_name, 'and exits the program.')
     if command == 'help':
