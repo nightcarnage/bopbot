@@ -188,7 +188,7 @@ credit associated with each tipper.')
     if command == 'start':
         print('The "start" command enables song requests.')
     if command == 'stop':
-        print('The "stop" command disables song requests.')
+        print('The "stop" command disables song requests. Also disables credit command.')
 
 #if clean_playlist is specificed in config.ini
 #then when program is reset or exited it will
