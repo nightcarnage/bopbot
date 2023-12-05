@@ -243,13 +243,14 @@ async def request_command(cmd: ChatCommand):
 
     if cmd.user.name.lower() in tippers.keys():
         if tippers[cmd.user.name.lower()] >= 1:
-            tippers[cmd.user.name.lower()] -= 1
 
             tr = sp.currently_playing()
 
             if tr == None:
                 print("There is currently no song playing.")
                 return
+                
+            tippers[cmd.user.name.lower()] -= 1
 
             ci = 0
 
