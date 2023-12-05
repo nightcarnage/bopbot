@@ -7,6 +7,10 @@ disable_request_cmd = False
 disable_song_cmd = False
 clean_playlist = True
 cumulative_credit = True
+credit_message = f'@{username}, you have {credit} song request credit(s).'
+song_message = f'@{username}, current song is {name} by {artist}.'
+no_song_message = f'@{username}, there is currently no song playing.'
+request_message = f'@{username}, added {name} by {artist} to the playlist.'
 
 [spotify]
 client_id = 

@@ -59,6 +59,7 @@ try:
     DISABLE_SONG_CMD = cfg.getboolean('b0pperbot', 'disable_song_cmd')
     DISABLE_REQUEST_CMD = cfg.getboolean('b0pperbot', 'disable_request_cmd')
     CUMULATIVE_CREDIT = cfg.getboolean('b0pperbot', 'cumulative_credit')
+    CREDIT_MESSAGE = cfg.get('b0pperbot', 'credit_message')
 except Exception as r:
     print('Error reading "config.ini".', str(r))
     fail()
@@ -230,7 +231,8 @@ def clean_playlist():
 async def credit_command(cmd: ChatCommand):
     if DISABLE_CREDIT_CMD: return
     credit = tippers.get(cmd.user.name.lower(), 0)
-    await cmd.reply(f'@{cmd.user.name}, you have {credit} song request credit(s).')
+    username = cmd.user.name
+    await cmd.reply(eval(CREDIT_MESSAGE))
 
 #bot will reply with currently playing song
 async def song_command(cmd: ChatCommand):
@@ -239,14 +241,15 @@ async def song_command(cmd: ChatCommand):
 
     tr = sp.currently_playing()
 
+    name = tr['item']['name']
+    artist = tr['item']['artists'][0]['name']
+    username = cmd.user.name
+
     if tr == None:
-        await cmd.reply("There is currently no song playing.")
+        await cmd.reply(eval(NO_SONG_MESSAGE))
         return
     
-    name = tr['item']['name']
-    artist = tr['item']['artists'][0]["name"]
-
-    await cmd.reply(f'@{cmd.user.name}, current song is {name} by {artist}.')
+    await cmd.reply(eval(SONG_MESSAGE))
 
 #bot will add song to playlist if tipper has credit
 async def request_command(cmd: ChatCommand):
@@ -289,7 +292,9 @@ async def request_command(cmd: ChatCommand):
 
                 name = track['name']
                 artist = track['artists'][0]["name"]
-                await cmd.reply(f'@{cmd.user.name}, added {name} by {artist} to the playlist.')
+                username = cmd.user.name
+
+                await cmd.reply(eval(REQUEST_MESSAGE))
 
                 print('Added requested track to position', str(ci))
 
