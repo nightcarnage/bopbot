@@ -33,23 +33,24 @@ try:
 
     TWITCH_CLIENT_ID = cfg['twitch']['client_id']
     TWITCH_SECRET = cfg['twitch']['secret_key']
+    SIGNAL_BOT = cfg['twitch']['signal_bot']
     TARGET_CHANNEL = cfg['twitch']['channel']
     GIFTED_MESSAGE = cfg['twitch']['gifted_message']
     BITS_MESSAGE = cfg['twitch']['bits_message']
     TIP_MESSAGE = cfg['twitch']['tip_message']
+
+    AMOUNT_BITS = cfg.getint('twitch', 'amount_bits')
+    AMOUNT_GIFTED_TIER1 = cfg.getint('twitch', 'amount_gifted_tier1')
+    AMOUNT_GIFTED_TIER2 = cfg.getint('twitch','amount_gifted_tier2')
+    AMOUNT_GIFTED_TIER3 = cfg.getint('twitch', 'amount_gifted_tier3')
+    AMOUNT_TIP = cfg.getfloat('twitch', 'amount_tip')
 
     SPOTIFY_CLIENT_ID = cfg['spotify']['client_id']
     SPOTIFY_SECRET = cfg['spotify']['secret_key']
     SPOTIFY_PLAYLIST_URI = cfg['spotify']['playlist_uri']
     SPOTIFY_REQUEST_URI = cfg['spotify']['request_uri']
 
-    AMOUNT_BITS = cfg.getint('b0pperbot', 'amount_bits')
-    AMOUNT_GIFTED_TIER1 = cfg.getint('b0pperbot', 'amount_gifted_tier1')
-    AMOUNT_GIFTED_TIER2 = cfg.getint('b0pperbot','amount_gifted_tier2')
-    AMOUNT_GIFTED_TIER3 = cfg.getint('b0pperbot', 'amount_gifted_tier3')
-    AMOUNT_TIP = cfg.getfloat('b0pperbot', 'amount_tip')
     DO_CLEAN_PLAYLIST = cfg.getboolean('b0pperbot', 'clean_playlist')
-    SIGNAL_BOT = cfg.get('b0pperbot', 'signal_bot')
     REQUEST_CMD = cfg.get('b0pperbot', 'request_cmd')
     SONG_CMD = cfg.get('b0pperbot', 'song_cmd')
     CREDIT_CMD = cfg.get('b0pperbot', 'credit_cmd')
