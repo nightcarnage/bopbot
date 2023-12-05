@@ -13,6 +13,7 @@ from sys import exit
 from pprint import pprint
 
 import asyncio
+import time
 import re
 
 #global variables
@@ -212,6 +213,8 @@ def clean_playlist():
             sp.playlist_remove_specific_occurrences_of_items(
             SPOTIFY_PLAYLIST_URI, track_ids
             )
+            print('Removing track', tid)
+            time.sleep(0.3)
             i+=1
 
 
