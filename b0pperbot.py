@@ -188,7 +188,7 @@ credit associated with each tipper.')
     if command == 'start':
         print('The "start" command enables song requests.')
     if command == 'stop':
-        print('The "stop" command disables song requests. It also disables credit command.')
+        print('The "stop" command disables song requests.')
 
 #if clean_playlist is specificed in config.ini
 #then when program is reset or exited it will
@@ -342,10 +342,12 @@ async def run():
         print('Error connecting to Spotify.')
         fail()
     
-    print()
-    pl = input('Playlist ID: ')
-    if pl:
-        SPOTIFY_PLAYLIST_URI = pl
+    global SPOTIFY_PLAYLIST_URI
+    if not SPOTIFY_PLAYLIST_URI:
+        print()
+        pl = input('Playlist ID: ')
+        if pl:
+            SPOTIFY_PLAYLIST_URI = pl
 
     try:
         chat = await Chat(twitch)
