@@ -17,7 +17,7 @@ cumulative_credit = True
 [spotify]
 client_id = 
 secret_key = 
-playlist_uri = spotify:playlist:?
+playlist_uri = 
 request_uri = http://localhost:3000
 
 [twitch]

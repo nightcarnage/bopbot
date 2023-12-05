@@ -71,7 +71,7 @@ def cache_playlist():
     offset = 0
     try:
         while True:
-            response = sp.playlist_items(SPOTIFY_PLAYLIST_URI,
+            response = sp.playlist_items('spotify:playlist:' + SPOTIFY_PLAYLIST_URI,
                     offset=offset,
                     fields='items.track.id,items.track.uri,total',
                     additional_types=['track'])
@@ -285,12 +285,16 @@ async def request_command(cmd: ChatCommand):
 
 def request_start():
     global DISABLE_REQUEST_CMD
+    global DISABLE_CREDIT_CMD
     DISABLE_REQUEST_CMD = False
+    DISABLE_CREDIT_CMD = cfg.getboolean('b0pperbot', 'disable_credit_cmd')
     print('Requests are enabled.')
 
 def request_stop():
     global DISABLE_REQUEST_CMD
+    global DISABLE_CREDIT_CMD
     DISABLE_REQUEST_CMD = True
+    DISABLE_CREDIT_CMD = True
     print('Requests are disabled.')
 
 #set up twitch interface and main program loop
@@ -336,6 +340,11 @@ async def run():
     except Exception:
         print('Error connecting to Spotify.')
         fail()
+    
+    print()
+    pl = input('Playlist ID: ')
+    if pl:
+        SPOTIFY_PLAYLIST_URI = pl
 
     try:
         chat = await Chat(twitch)
