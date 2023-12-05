@@ -59,8 +59,8 @@ try:
     DISABLE_SONG_CMD = cfg.getboolean('b0pperbot', 'disable_song_cmd')
     DISABLE_REQUEST_CMD = cfg.getboolean('b0pperbot', 'disable_request_cmd')
     CUMULATIVE_CREDIT = cfg.getboolean('b0pperbot', 'cumulative_credit')
-except Exception:
-    print('Error reading "config.ini".')
+except Exception as r:
+    print('Error reading "config.ini".', str(r))
     fail()
 
 #cache the playlist into a list
@@ -87,8 +87,8 @@ def cache_playlist():
         playlist_tracks = playlist_tracks[0]
         for track in playlist_tracks:
             track['track']['requested'] = False
-    except Exception:
-        print('Error getting Spotify playlist.')
+    except Exception as r:
+        print('Error getting Spotify playlist.', str(r))
         fail()
 
 #setup playlist when Twitch is ready and Spotify connection established
@@ -170,10 +170,16 @@ async def on_message(msg: ChatMessage):
             tippers[tipper.lower()] = round(credit)
             print(tipper + '\'s credit is now', str(credit))
 
+#give 1 credit to user
+def give(username = ''):
+    if username:
+        tippers[username.lower()] += 1
+
+
 #display help
 def help(command = ''):
     if command == '':
-        print('Commands: stop, start, tippers, refresh, reset, help, quit (or exit). For further help, type \
+        print('Commands: stop, start, tippers, refresh, reset, give, help, quit (or exit). For further help, type \
 "help <command>".')
     if command == 'quit':
         print('The "quit" command deactivates', app_name, 'and exits the program.')
@@ -190,6 +196,8 @@ credit associated with each tipper.')
         print('The "start" command enables song requests.')
     if command == 'stop':
         print('The "stop" command disables song requests.')
+    if command == 'give':
+        print('The "give <username>" command will give 1 credit to <username>.')
 
 #if clean_playlist is specificed in config.ini
 #then when program is reset or exited it will
@@ -326,8 +334,8 @@ async def run():
 
         token, refresh_token = await auth.authenticate()
         await twitch.set_user_authentication(token, twitch_scope, refresh_token)
-    except Exception:
-        print('Error conneceting to Twitch.')
+    except Exception as r:
+        print('Error conneceting to Twitch.', str(r))
         fail()
 
     global sp
@@ -341,8 +349,8 @@ async def run():
             redirect_uri=SPOTIFY_REQUEST_URI,
             scope=scope
             ))
-    except Exception:
-        print('Error connecting to Spotify.')
+    except Exception as r:
+        print('Error connecting to Spotify.', str(r))
         fail()
     
     global SPOTIFY_PLAYLIST_URI
@@ -361,8 +369,8 @@ async def run():
         chat.register_command(CREDIT_CMD, credit_command)
 
         chat.start()
-    except Exception:
-        print('Error enterting chat and registering commands.')
+    except Exception as r:
+        print('Error enterting chat and registering commands.', str(r))
         fail()
 
     quit = False
@@ -381,6 +389,12 @@ async def run():
                     help()
             if cmd == 'quit' or cmd == 'exit':
                 quit = True
+            
+            if cmd == 'give':
+                if len(line) >= 2:
+                    give(line[1])
+                else:
+                    print('No <username> specified.')
             
             if cmd == 'reset':
                 print('Clearing tippers list...')
