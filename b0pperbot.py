@@ -13,7 +13,6 @@ from sys import exit
 from pprint import pprint
 
 import asyncio
-import requests
 import re
 
 #global variables
