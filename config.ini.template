@@ -1,5 +1,5 @@
 [b0pperbot]
-request_cmd = sr
+request_cmd = request
 song_cmd = song
 credit_cmd = credit
 disable_credit_cmd = False

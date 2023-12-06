@@ -51,7 +51,7 @@ try:
     SPOTIFY_PLAYLIST_URI = cfg['spotify']['playlist_uri']
     SPOTIFY_REQUEST_URI = cfg['spotify']['request_uri']
 
-    DO_CLEAN_PLAYLIST = cfg.getboolean('b0pperbot', 'clean_playlist')
+    CLEAN_PLAYLIST = cfg.getboolean('b0pperbot', 'clean_playlist')
     REQUEST_CMD = cfg.get('b0pperbot', 'request_cmd')
     SONG_CMD = cfg.get('b0pperbot', 'song_cmd')
     CREDIT_CMD = cfg.get('b0pperbot', 'credit_cmd')
@@ -174,7 +174,10 @@ async def on_message(msg: ChatMessage):
 #give 1 credit to user
 def give(username = ''):
     if username:
-        tippers[username.lower()] += 1
+        if username.lower() in tippers.keys():
+            tippers[username.lower()] += 1
+        else:
+            tippers[username.lower()] = 1
 
 
 #display help
@@ -206,8 +209,8 @@ credit associated with each tipper.')
 #to preserve the original curated playlist
 def clean_playlist():
 
-    global DO_CLEAN_PLAYLIST
-    if not DO_CLEAN_PLAYLIST: return
+    global CLEAN_PLAYLIST
+    if not CLEAN_PLAYLIST: return
 
     print('Removing requested songs from playlist...')
 
