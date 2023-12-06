@@ -31,4 +31,4 @@ amount_gifted_tier1 = 3
 amount_gifted_tier2 = 2
 amount_gifted_tier3 = 1
 amount_tip = 10.00
-;request_uri = http://localhost:17563
+request_uri = http://localhost:17563

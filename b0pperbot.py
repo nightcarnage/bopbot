@@ -34,34 +34,49 @@ try:
 
     TWITCH_CLIENT_ID = cfg['twitch']['client_id']
     TWITCH_SECRET = cfg['twitch']['secret_key']
-    SIGNAL_BOT = cfg['twitch']['signal_bot']
     TARGET_CHANNEL = cfg['twitch']['channel']
-    GIFTED_MESSAGE = cfg['twitch']['gifted_message']
-    BITS_MESSAGE = cfg['twitch']['bits_message']
-    TIP_MESSAGE = cfg['twitch']['tip_message']
-
-    AMOUNT_BITS = cfg.getint('twitch', 'amount_bits')
-    AMOUNT_GIFTED_TIER1 = cfg.getint('twitch', 'amount_gifted_tier1')
-    AMOUNT_GIFTED_TIER2 = cfg.getint('twitch','amount_gifted_tier2')
-    AMOUNT_GIFTED_TIER3 = cfg.getint('twitch', 'amount_gifted_tier3')
-    AMOUNT_TIP = cfg.getfloat('twitch', 'amount_tip')
 
     SPOTIFY_CLIENT_ID = cfg['spotify']['client_id']
     SPOTIFY_SECRET = cfg['spotify']['secret_key']
     SPOTIFY_PLAYLIST_URI = cfg['spotify']['playlist_uri']
-    SPOTIFY_REQUEST_URI = cfg['spotify']['request_uri']
+    
+    SPOTIFY_REQUEST_URI = cfg.get('spotify', 'request_uri', fallback='http://localhost:3000')
 
-    CLEAN_PLAYLIST = cfg.getboolean('b0pperbot', 'clean_playlist')
-    REQUEST_CMD = cfg.get('b0pperbot', 'request_cmd')
-    SONG_CMD = cfg.get('b0pperbot', 'song_cmd')
-    CREDIT_CMD = cfg.get('b0pperbot', 'credit_cmd')
-    DISABLE_CREDIT_CMD = cfg.getboolean('b0pperbot', 'disable_credit_cmd')
-    DISABLE_SONG_CMD = cfg.getboolean('b0pperbot', 'disable_song_cmd')
-    DISABLE_REQUEST_CMD = cfg.getboolean('b0pperbot', 'disable_request_cmd')
-    CUMULATIVE_CREDIT = cfg.getboolean('b0pperbot', 'cumulative_credit')
-    CREDIT_MESSAGE = cfg.get('b0pperbot', 'credit_message')
+    GIFTED_MESSAGE = cfg.get('twitch', 'gifted_message', fallback='.* just gifted [1-9][0-9]* Tier [1-3]? subscriptions!')
+    BITS_MESSAGE = cfg.get('twitch', 'bits_message', fallback='Thank you .* for donating [1-9][0-9]* bits')
+    TIP_MESSAGE = cfg.get('twitch', 'tip_message', fallback='Thank you .* for tipping \$(0|[1-9][0-9])*\.(0|[0-9][0-9])??!')
+
+    SIGNAL_BOT = cfg.get('twitch', 'signal_bot', fallback='Streamlabs')
+    TWITCH_REQUEST_URI = cfg.get('twitch', 'request_uri', fallback='http://localhost:17563')
+
+    AMOUNT_BITS = cfg.getint('twitch', 'amount_bits', fallback=1000)
+    AMOUNT_GIFTED_TIER1 = cfg.getint('twitch', 'amount_gifted_tier1', fallback=3)
+    AMOUNT_GIFTED_TIER2 = cfg.getint('twitch','amount_gifted_tier2', fallback=2)
+    AMOUNT_GIFTED_TIER3 = cfg.getint('twitch', 'amount_gifted_tier3', fallback=1)
+    AMOUNT_TIP = cfg.getfloat('twitch', 'amount_tip', fallback=10.00)
+
+    CLEAN_PLAYLIST = cfg.getboolean('b0pperbot', 'clean_playlist', fallback=True)
+    REQUEST_CMD = cfg.get('b0pperbot', 'request_cmd', fallback='request')
+    SONG_CMD = cfg.get('b0pperbot', 'song_cmd', fallback='song')
+    CREDIT_CMD = cfg.get('b0pperbot', 'credit_cmd', fallback='credit')
+    DISABLE_CREDIT_CMD = cfg.getboolean('b0pperbot', 'disable_credit_cmd', fallback=False)
+    DISABLE_SONG_CMD = cfg.getboolean('b0pperbot', 'disable_song_cmd', fallback=False)
+    DISABLE_REQUEST_CMD = cfg.getboolean('b0pperbot', 'disable_request_cmd', fallback=False)
+    CUMULATIVE_CREDIT = cfg.getboolean('b0pperbot', 'cumulative_credit', fallback=True)
+    CREDIT_MESSAGE = cfg.get('b0pperbot', 'credit_message', fallback="f'@{username}, you have {credit} song request credit(s).")
+    SONG_MESSAGE = cfg.get('b0pperbot', 'song_message', fallback="f'@{username}, current song is {name} by {artist}.'")
+    NO_SONG_MESSAGE = cfg.get('b0pperbot', 'no_song_message', fallback="f'@{username}, there is currently no song playing.'")
+    REQUEST_MESSAGE = cfg.get('b0pperbot', 'request_message', fallback="f'@{username}, added {name} by {artist} to the playlist.'")
+
 except Exception as r:
     print('Error reading "config.ini".', str(r))
+    fail()
+
+try:
+    with open('config.ini', 'w') as f:
+        cfg.write(f)
+except Exception as r:
+    print('Error writing "config.ini".', str(r))
     fail()
 
 #cache the playlist into a list
