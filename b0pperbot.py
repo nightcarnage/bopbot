@@ -39,7 +39,10 @@ try:
     SPOTIFY_CLIENT_ID = cfg['spotify']['client_id']
     SPOTIFY_SECRET = cfg['spotify']['secret_key']
     SPOTIFY_PLAYLIST_URI = cfg['spotify']['playlist_uri']
-    
+except Exception as r:
+    print('Error reading "config.ini".', str(r))
+    fail()
+else:
     SPOTIFY_REQUEST_URI = cfg.get('spotify', 'request_uri', fallback='http://localhost:3000')
 
     GIFTED_MESSAGE = cfg.get('twitch', 'gifted_message', fallback='.* just gifted [1-9][0-9]* Tier [1-3]? subscriptions!')
@@ -67,17 +70,6 @@ try:
     SONG_MESSAGE = cfg.get('b0pperbot', 'song_message', fallback="f'@{username}, current song is {name} by {artist}.'")
     NO_SONG_MESSAGE = cfg.get('b0pperbot', 'no_song_message', fallback="f'@{username}, there is currently no song playing.'")
     REQUEST_MESSAGE = cfg.get('b0pperbot', 'request_message', fallback="f'@{username}, added {name} by {artist} to the playlist.'")
-
-except Exception as r:
-    print('Error reading "config.ini".', str(r))
-    fail()
-
-try:
-    with open('config.ini', 'w') as f:
-        cfg.write(f)
-except Exception as r:
-    print('Error writing "config.ini".', str(r))
-    fail()
 
 #cache the playlist into a list
 def cache_playlist():
