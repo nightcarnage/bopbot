@@ -251,13 +251,14 @@ async def song_command(cmd: ChatCommand):
 
     tr = sp.currently_playing()
 
-    name = tr['item']['name']
-    artist = tr['item']['artists'][0]['name']
     username = cmd.user.name
 
     if tr == None:
         await cmd.reply(eval(NO_SONG_MESSAGE))
         return
+
+    name = tr['item']['name']
+    artist = tr['item']['artists'][0]['name']
     
     await cmd.reply(eval(SONG_MESSAGE))
 
