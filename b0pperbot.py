@@ -135,9 +135,7 @@ async def on_message(msg: ChatMessage):
                 tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
                     #TODO currency conversion
-                    line = msg.text.split()
-                    if line[5].startswith('$'):
-                        credit += round(amount/AMOUNT_TIP)
+                    credit += round(amount/AMOUNT_TIP)
                 else:
                     credit = 1
 
