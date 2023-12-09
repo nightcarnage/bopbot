@@ -7,4 +7,4 @@ PyInstaller.__main__.run([
     '--onefile'
 ])
 
-shutil.copyfile('./config.ini.template','./dist/config.ini')
+shutil.copyfile('./config.template.ini','./dist/config.ini')
