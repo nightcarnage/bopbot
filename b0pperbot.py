@@ -127,47 +127,48 @@ async def on_message(msg: ChatMessage):
         amount = 0
         credit = tippers.get(msg.user.name.lower(),0)
 
-        if re.match(TIP_MESSAGE, msg.text):
-            line = msg.text.split()
-            amount = float(line[5][1:-1])
+        r = re.match(TIP_MESSAGE, msg.text)
+        if r:
+            amount = float(r.groups()[1])
             print("dollar amount", amount)
             if amount >= AMOUNT_TIP:
-                tipper = line[2]
+                tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
                     #TODO currency conversion
+                    line = msg.text.split()
                     if line[5].startswith('$'):
                         credit += round(amount/AMOUNT_TIP)
                 else:
                     credit = 1
 
-        if re.match(BITS_MESSAGE, msg.text):
-            line = msg.text.split()
-            amount = int(line[5])
+        r = re.match(BITS_MESSAGE, msg.text)
+        if r:
+            amount = int(r.groups()[1])
             if amount >= AMOUNT_BITS:
-                tipper = line[2]
+                tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
                     credit += round(amount/AMOUNT_BITS)
                 else:
                     credit = 1
-        
-        if re.match(GIFTED_MESSAGE, msg.text):
-            line = msg.text.split()
-            amount = int(line[3])
-            tier = 1
-            if int(line[5]) == 1 and amount >= AMOUNT_GIFTED_TIER1:
-                tipper = line[0]
+
+        r = re.match(GIFTED_MESSAGE, msg.text)
+        if r:
+            tier = r.groups()[2]
+            amount = int(r.groups()[1])
+            if int(tier) == 1 and amount >= AMOUNT_GIFTED_TIER1:
+                tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
                     credit += round(amount/AMOUNT_GIFTED_TIER1)
                 else:
                     credit = 1
-            if int(line[5]) == 2 and amount >= AMOUNT_GIFTED_TIER2:
-                tipper = line[0]
+            if int(tier) == 2 and amount >= AMOUNT_GIFTED_TIER2:
+                tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
                     credit += round(amount/AMOUNT_GIFTED_TIER2)
                 else:
                     credit = 1
-            if int(line[5]) == 3 and amount >= AMOUNT_GIFTED_TIER3:
-                tipper = line[0]
+            if int(tier) == 3 and amount >= AMOUNT_GIFTED_TIER3:
+                tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
                     credit += round(amount/AMOUNT_GIFTED_TIER3)
                 else:
