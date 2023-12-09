@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+from sys import exit
+from pprint import pprint
+
+import configparser
+import asyncio
+import time
+import re
+
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
@@ -7,14 +15,6 @@ from twitchAPI.oauth import UserAuthenticator
 from twitchAPI.oauth import UserAuthenticationStorageHelper
 from twitchAPI.type import AuthScope, ChatEvent
 from twitchAPI.chat import Chat, EventData, ChatMessage, ChatSub, ChatCommand
-import configparser
-
-from sys import exit
-from pprint import pprint
-
-import asyncio
-import time
-import re
 
 #global variables
 app_name = 'B0pperBot'
@@ -445,4 +445,5 @@ async def run():
 
     print('Exiting...')
 
-asyncio.run(run())
+if __name__ == '__main__':
+    asyncio.run(run())
