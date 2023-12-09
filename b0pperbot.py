@@ -22,9 +22,10 @@ tippers = {}
 playlist_tracks = []
 sp = 0
 
-def fail(code = -1):
+def fail(*args):
+    print( ' '.join(map(str,args)))
     print('Exiting...')
-    exit(code)
+    exit(-1)
 
 #read from config.ini
 cfg = configparser.ConfigParser()
@@ -40,8 +41,7 @@ try:
     SPOTIFY_SECRET = cfg['spotify']['secret_key']
     SPOTIFY_PLAYLIST_URI = cfg['spotify']['playlist_uri']
 except Exception as r:
-    print('Error reading "config.ini".', str(r))
-    fail()
+    fail('Error reading "config.ini".', str(r))
 else:
     SPOTIFY_REQUEST_URI = cfg.get('spotify', 'request_uri', fallback='http://localhost:3000')
 
@@ -96,8 +96,7 @@ def cache_playlist():
         for track in playlist_tracks:
             track['track']['requested'] = False
     except Exception as r:
-        print('Error getting Spotify playlist.', str(r))
-        fail()
+        fail('Error getting Spotify playlist.', str(r))
 
 #setup playlist when Twitch is ready and Spotify connection established
 async def on_ready(ready_event: EventData):
@@ -351,8 +350,7 @@ async def run():
         token, refresh_token = await auth.authenticate()
         await twitch.set_user_authentication(token, twitch_scope, refresh_token)
     except Exception as r:
-        print('Error conneceting to Twitch.', str(r))
-        fail()
+        fail('Error conneceting to Twitch.', str(r))
 
     global sp
     try:
@@ -366,8 +364,7 @@ async def run():
             scope=scope
             ))
     except Exception as r:
-        print('Error connecting to Spotify.', str(r))
-        fail()
+        fail('Error connecting to Spotify.', str(r))
     
     global SPOTIFY_PLAYLIST_URI
     if not SPOTIFY_PLAYLIST_URI:
@@ -386,8 +383,7 @@ async def run():
 
         chat.start()
     except Exception as r:
-        print('Error enterting chat and registering commands.', str(r))
-        fail()
+        fail('Error enterting chat and registering commands.', str(r))
 
     quit = False
     while not quit:
