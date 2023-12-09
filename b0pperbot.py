@@ -257,7 +257,7 @@ async def song_command(cmd: ChatCommand):
 
     name = tr['item']['name']
     artist = tr['item']['artists'][0]['name']
-    
+
     await cmd.reply(eval(SONG_MESSAGE))
 
 #bot will add song to playlist if tipper has credit
