@@ -135,7 +135,7 @@ async def on_message(msg: ChatMessage):
                 tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
                     #TODO currency conversion
-                    credit += round(amount/AMOUNT_TIP)
+                    credit += floor(amount/AMOUNT_TIP)
                 else:
                     credit = 1
 
@@ -145,7 +145,7 @@ async def on_message(msg: ChatMessage):
             if amount >= AMOUNT_BITS:
                 tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
-                    credit += round(amount/AMOUNT_BITS)
+                    credit += floor(amount/AMOUNT_BITS)
                 else:
                     credit = 1
 
@@ -156,24 +156,24 @@ async def on_message(msg: ChatMessage):
             if int(tier) == 1 and amount >= AMOUNT_GIFTED_TIER1:
                 tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
-                    credit += round(amount/AMOUNT_GIFTED_TIER1)
+                    credit += floor(amount/AMOUNT_GIFTED_TIER1)
                 else:
                     credit = 1
             if int(tier) == 2 and amount >= AMOUNT_GIFTED_TIER2:
                 tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
-                    credit += round(amount/AMOUNT_GIFTED_TIER2)
+                    credit += floor(amount/AMOUNT_GIFTED_TIER2)
                 else:
                     credit = 1
             if int(tier) == 3 and amount >= AMOUNT_GIFTED_TIER3:
                 tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
-                    credit += round(amount/AMOUNT_GIFTED_TIER3)
+                    credit += floor(amount/AMOUNT_GIFTED_TIER3)
                 else:
                     credit = 1
 
         if tipper:
-            tippers[tipper.lower()] = round(credit)
+            tippers[tipper.lower()] = floor(credit)
             print(tipper + '\'s credit is now', str(credit))
 
 #give 1 credit to user
