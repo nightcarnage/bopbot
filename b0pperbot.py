@@ -136,7 +136,6 @@ async def on_message(msg: ChatMessage):
         r = re.match(TIP_REGEX, msg.text)
         if r:
             amount = float(r.groups()[1])
-            print("dollar amount", amount)
             if amount >= AMOUNT_TIP:
                 tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
