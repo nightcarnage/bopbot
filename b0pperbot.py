@@ -39,7 +39,8 @@ try:
 
     SPOTIFY_CLIENT_ID = cfg['spotify']['client_id']
     SPOTIFY_SECRET = cfg['spotify']['secret_key']
-    SPOTIFY_PLAYLIST_URI = cfg['spotify']['playlist_uri']
+    SPOTIFY_PLAYLIST_URL = cfg['spotify']['playlist_url']
+    SPOTIFY_PLAYLIST_URI = ''
 except Exception as r:
     fail('Error reading "config.ini".', str(r))
 else:
@@ -365,12 +366,18 @@ async def run():
     except Exception as r:
         fail('Error connecting to Spotify.', str(r))
     
+
+    
+    global SPOTIFY_PLAYLIST_URL
     global SPOTIFY_PLAYLIST_URI
-    if not SPOTIFY_PLAYLIST_URI:
+    if not SPOTIFY_PLAYLIST_URL:
         print()
-        pl = input('Playlist ID: ')
+        pl = input('Playlist URL: ')
         if pl:
-            SPOTIFY_PLAYLIST_URI = pl
+            SPOTIFY_PLAYLIST_URL = pl
+    
+    r = re.match('https://open.spotify.com/playlist/(.*)\?si=(.*)',SPOTIFY_PLAYLIST_URL)
+    SPOTIFY_PLAYLIST_URI = r.groups()[0]
 
     try:
         chat = await Chat(twitch)
