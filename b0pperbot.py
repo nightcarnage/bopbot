@@ -182,6 +182,7 @@ async def on_message(msg: ChatMessage):
             tippers[tipper.lower()] = math.floor(credit)
             credit = str(credit)
             username = tipper
+            print(username, 'now has', credit,'song request credit(s)')
             await chat.send_message(TARGET_CHANNEL, eval(NOTIFY_MESSAGE))
 
 #give 1 credit to user
@@ -317,7 +318,7 @@ async def request_command(cmd: ChatCommand):
 
                 await cmd.reply(eval(REQUEST_MESSAGE))
 
-                print('Added requested track to position', str(ci))
+                print(username, 'added', name, 'by', artist, 'to position', str(ci+1), 'in the playlist.')
 
             sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,ci)
 
