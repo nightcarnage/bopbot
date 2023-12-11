@@ -107,11 +107,11 @@ def cache_playlist():
 #setup playlist when Twitch is ready and Spotify connection established
 async def on_ready(ready_event: EventData):
 
-    cache_playlist()
-
-    print(app_name, 'is ready.\n')
-    help()
+    print(app_name, 'is ready.')
+    print('Joining channel:', TARGET_CHANNEL)
     await ready_event.chat.join_room(TARGET_CHANNEL)
+    print()
+    help()
 
 #parse signal bot chat notifications and calculate
 #tippers credit for song requests
@@ -401,7 +401,10 @@ async def run():
         else:
             fail('Invalid playlist URL.')
     print()
-    
+
+    cache_playlist()
+
+    print()
 
     try:
         print('Authenticating with Twitch...')
