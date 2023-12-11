@@ -2,6 +2,7 @@
 from sys import exit
 from pprint import pprint
 
+import pyperclip
 import configparser
 import asyncio
 import time
@@ -328,7 +329,7 @@ def request_stop():
     DISABLE_CREDIT_CMD = True
     print('Requests are disabled.')
 
-#set up twitch interface and main program loop
+#set up twitch and spotify interface and main program loop
 async def run():
 
     global tippers
@@ -345,17 +346,6 @@ async def run():
 
     print(app_name, 'is starting...')
 
-    try:
-        print('Authenticating with Twitch...')
-        twitch_scope = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
-        twitch = await Twitch(TWITCH_CLIENT_ID, TWITCH_SECRET)
-        auth = UserAuthenticator(twitch, twitch_scope)
-
-        token, refresh_token = await auth.authenticate()
-        await twitch.set_user_authentication(token, twitch_scope, refresh_token)
-    except Exception as r:
-        fail('Error conneceting to Twitch.', str(r))
-
     global sp
     try:
         print('Authenticating with Spotify...')
@@ -370,18 +360,43 @@ async def run():
     except Exception as r:
         fail('Error connecting to Spotify.', str(r))
     
-
-    
     global SPOTIFY_PLAYLIST_URL
     global SPOTIFY_PLAYLIST_URI
+
     if not SPOTIFY_PLAYLIST_URL:
-        print()
-        pl = input('Playlist URL: ')
-        if pl:
-            SPOTIFY_PLAYLIST_URL = pl
+
+        rp = 'https://open.spotify.com/playlist/(.*)\?si=(.*)'
+        cd = pyperclip.paste()
+        r = re.match(rp,cd)
+        if r:
+            print()
+            print('Using copied playlist URL:', cd)
+            SPOTIFY_PLAYLIST_URL = cd
+            SPOTIFY_PLAYLIST_URI = r.groups()[0]
+        else:
+
+            print()
+            pl = input('Playlist URL: ')
+            if pl:
+                SPOTIFY_PLAYLIST_URL = pl
+                r = re.match(rp,pl)
+                if r:
+                    SPOTIFY_PLAYLIST_URI = r.groups()[0]
+                else:
+                    fail('Invalid playlist URL.')
     
-    r = re.match('https://open.spotify.com/playlist/(.*)\?si=(.*)',SPOTIFY_PLAYLIST_URL)
-    SPOTIFY_PLAYLIST_URI = r.groups()[0]
+
+    try:
+        print('Authenticating with Twitch...')
+        twitch_scope = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
+        twitch = await Twitch(TWITCH_CLIENT_ID, TWITCH_SECRET)
+        auth = UserAuthenticator(twitch, twitch_scope)
+
+        token, refresh_token = await auth.authenticate()
+        await twitch.set_user_authentication(token, twitch_scope, refresh_token)
+    except Exception as r:
+        fail('Error conneceting to Twitch.', str(r))
+
 
     try:
         chat = await Chat(twitch)
