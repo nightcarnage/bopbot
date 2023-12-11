@@ -283,9 +283,9 @@ async def request_command(cmd: ChatCommand):
             tr = sp.currently_playing()
 
             if tr == None:
-                print("There is currently no song playing.")
+                print("Song cannot be added because there is no song from the playlist in the queue.")
                 return
-                
+   
             tippers[cmd.user.name.lower()] -= 1
 
             ci = 0
