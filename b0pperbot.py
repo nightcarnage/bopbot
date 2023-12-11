@@ -239,8 +239,12 @@ def clean_playlist():
 #bot will reply with how much credit tipper has
 async def credit_command(cmd: ChatCommand):
     if DISABLE_CREDIT_CMD: return
-    credit = tippers.get(cmd.user.name.lower(), 0)
+    
     username = cmd.user.name
+    credit = 0
+    if username.lower() in tippers.keys():
+        credit = tippers[username.lower()]
+
     await cmd.reply(eval(CREDIT_MESSAGE))
 
 #bot will reply with currently playing song
