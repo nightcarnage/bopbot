@@ -70,11 +70,12 @@ else:
     DISABLE_SONG_CMD = cfg.getboolean('b0pperbot', 'disable_song_cmd', fallback=False)
     DISABLE_REQUEST_CMD = cfg.getboolean('b0pperbot', 'disable_request_cmd', fallback=False)
     CUMULATIVE_CREDIT = cfg.getboolean('b0pperbot', 'cumulative_credit', fallback=True)
-    CREDIT_MESSAGE = cfg.get('b0pperbot', 'credit_message', fallback="f'@{username}, you have {credit} song request credit(s).")
-    SONG_MESSAGE = cfg.get('b0pperbot', 'song_message', fallback="f'@{username}, current song is {name} by {artist}.'")
-    NO_SONG_MESSAGE = cfg.get('b0pperbot', 'no_song_message', fallback="f'@{username}, there is currently no song playing.'")
-    REQUEST_MESSAGE = cfg.get('b0pperbot', 'request_message', fallback="f'@{username}, added {name} by {artist} to the playlist.'")
-    NOTIFY_MESSAGE = cfg.get('b0pperbot', 'notify_message', fallback="f'@{username}, you now have {credit} song request credit(s).'")
+
+    CREDIT_MESSAGE = cfg.get('messages', 'credit_message', fallback="f'@{username}, you have {credit} song request credit(s).")
+    SONG_MESSAGE = cfg.get('messages', 'song_message', fallback="f'@{username}, current song is {name} by {artist}.'")
+    NO_SONG_MESSAGE = cfg.get('messages', 'no_song_message', fallback="f'@{username}, there is currently no song playing.'")
+    REQUEST_MESSAGE = cfg.get('messages', 'request_message', fallback="f'@{username}, added {name} by {artist} to the playlist.'")
+    NOTIFY_MESSAGE = cfg.get('messages', 'notify_message', fallback="f'@{username}, you now have {credit} song request credit(s).'")
 
 #cache the playlist into a list
 def cache_playlist():
