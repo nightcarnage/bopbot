@@ -23,7 +23,6 @@ app_name = 'B0pperBot'
 tippers = {}
 playlist_tracks = []
 sp = 0
-chat = 0
 
 def fail(*args):
     print( ' '.join(map(str,args)))
@@ -182,7 +181,7 @@ async def on_message(msg: ChatMessage):
             credit = str(credit)
             username = tipper
             print(username, 'now has', credit,'song request credit(s)')
-            await chat.send_message(TARGET_CHANNEL, eval(NOTIFY_MESSAGE))
+            await msg.chat.send_message(TARGET_CHANNEL, eval(NOTIFY_MESSAGE))
 
 #give 1 credit to user
 def give(username = ''):
@@ -418,7 +417,6 @@ async def run():
 
 
     try:
-        global chat
         chat = await Chat(twitch)
         chat.register_event(ChatEvent.READY, on_ready)
         chat.register_event(ChatEvent.MESSAGE, on_message)
