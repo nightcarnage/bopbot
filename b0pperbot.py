@@ -6,6 +6,7 @@ import pyperclip
 import configparser
 import asyncio
 import time
+import math
 import re
 
 import spotipy
@@ -22,6 +23,7 @@ app_name = 'B0pperBot'
 tippers = {}
 playlist_tracks = []
 sp = 0
+chat = 0
 
 def fail(*args):
     print( ' '.join(map(str,args)))
@@ -72,6 +74,7 @@ else:
     SONG_MESSAGE = cfg.get('b0pperbot', 'song_message', fallback="f'@{username}, current song is {name} by {artist}.'")
     NO_SONG_MESSAGE = cfg.get('b0pperbot', 'no_song_message', fallback="f'@{username}, there is currently no song playing.'")
     REQUEST_MESSAGE = cfg.get('b0pperbot', 'request_message', fallback="f'@{username}, added {name} by {artist} to the playlist.'")
+    NOTIFY_MESSAGE = cfg.get('b0pperbot', 'notify_message', fallback="f'@{username}, you now have {credit} song request credit(s).'")
 
 #cache the playlist into a list
 def cache_playlist():
@@ -137,7 +140,7 @@ async def on_message(msg: ChatMessage):
                 tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
                     #TODO currency conversion
-                    credit += floor(amount/AMOUNT_TIP)
+                    credit += math.floor(amount/AMOUNT_TIP)
                 else:
                     credit = 1
 
@@ -147,7 +150,7 @@ async def on_message(msg: ChatMessage):
             if amount >= AMOUNT_BITS:
                 tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
-                    credit += floor(amount/AMOUNT_BITS)
+                    credit += math.floor(amount/AMOUNT_BITS)
                 else:
                     credit = 1
 
@@ -158,25 +161,27 @@ async def on_message(msg: ChatMessage):
             if int(tier) == 1 and amount >= AMOUNT_GIFTED_TIER1:
                 tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
-                    credit += floor(amount/AMOUNT_GIFTED_TIER1)
+                    credit += math.floor(amount/AMOUNT_GIFTED_TIER1)
                 else:
                     credit = 1
             if int(tier) == 2 and amount >= AMOUNT_GIFTED_TIER2:
                 tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
-                    credit += floor(amount/AMOUNT_GIFTED_TIER2)
+                    credit += math.floor(amount/AMOUNT_GIFTED_TIER2)
                 else:
                     credit = 1
             if int(tier) == 3 and amount >= AMOUNT_GIFTED_TIER3:
                 tipper = r.groups()[0]
                 if CUMULATIVE_CREDIT:
-                    credit += floor(amount/AMOUNT_GIFTED_TIER3)
+                    credit += math.floor(amount/AMOUNT_GIFTED_TIER3)
                 else:
                     credit = 1
 
         if tipper:
-            tippers[tipper.lower()] = floor(credit)
-            print(tipper + '\'s credit is now', str(credit))
+            tippers[tipper.lower()] = math.floor(credit)
+            credit = str(credit)
+            username = tipper
+            await chat.send_message(TARGET_CHANNEL, eval(NOTIFY_MESSAGE))
 
 #give 1 credit to user
 def give(username = ''):
@@ -363,9 +368,10 @@ async def run():
     global SPOTIFY_PLAYLIST_URL
     global SPOTIFY_PLAYLIST_URI
 
+    rp = 'https://open.spotify.com/playlist/(.*)\?si=(.*)'
+
     if not SPOTIFY_PLAYLIST_URL:
 
-        rp = 'https://open.spotify.com/playlist/(.*)\?si=(.*)'
         cd = pyperclip.paste()
         r = re.match(rp,cd)
         if r:
@@ -384,6 +390,15 @@ async def run():
                     SPOTIFY_PLAYLIST_URI = r.groups()[0]
                 else:
                     fail('Invalid playlist URL.')
+    else:
+        print()
+        print('Using config playlist URL:', SPOTIFY_PLAYLIST_URL)
+        r = re.match(rp,SPOTIFY_PLAYLIST_URL)
+        if r:
+            SPOTIFY_PLAYLIST_URI = r.groups()[0]
+        else:
+            fail('Invalid playlist URL.')
+    print()
     
 
     try:
@@ -399,6 +414,7 @@ async def run():
 
 
     try:
+        global chat
         chat = await Chat(twitch)
         chat.register_event(ChatEvent.READY, on_ready)
         chat.register_event(ChatEvent.MESSAGE, on_message)
