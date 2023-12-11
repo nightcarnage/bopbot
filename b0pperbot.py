@@ -49,18 +49,18 @@ except Exception as r:
 else:
     SPOTIFY_REQUEST_URI = cfg.get('spotify', 'request_uri', fallback='http://localhost:3000')
 
-    GIFTED_MESSAGE = cfg.get('twitch', 'gifted_message', fallback='.* just gifted [1-9][0-9]* Tier [1-3]? subscriptions!')
-    BITS_MESSAGE = cfg.get('twitch', 'bits_message', fallback='Thank you .* for donating [1-9][0-9]* bits')
-    TIP_MESSAGE = cfg.get('twitch', 'tip_message', fallback='Thank you .* for tipping \$(0|[1-9][0-9])*\.(0|[0-9][0-9])??!')
+    GIFTED_REGEX = cfg.get('twitch', 'gifted_regex', fallback='.* just gifted [1-9][0-9]* Tier [1-3]? subscriptions!')
+    BITS_REGEX = cfg.get('twitch', 'bits_regex', fallback='Thank you .* for donating [1-9][0-9]* bits')
+    TIP_REGEX = cfg.get('twitch', 'tip_regex', fallback='Thank you .* for tipping \$(0|[1-9][0-9])*\.(0|[0-9][0-9])??!')
 
     SIGNAL_BOT = cfg.get('twitch', 'signal_bot', fallback='Streamlabs')
     TWITCH_REQUEST_URI = cfg.get('twitch', 'request_uri', fallback='http://localhost:17563')
 
-    AMOUNT_BITS = cfg.getint('twitch', 'amount_bits', fallback=1000)
-    AMOUNT_GIFTED_TIER1 = cfg.getint('twitch', 'amount_gifted_tier1', fallback=3)
-    AMOUNT_GIFTED_TIER2 = cfg.getint('twitch','amount_gifted_tier2', fallback=2)
-    AMOUNT_GIFTED_TIER3 = cfg.getint('twitch', 'amount_gifted_tier3', fallback=1)
-    AMOUNT_TIP = cfg.getfloat('twitch', 'amount_tip', fallback=10.00)
+    AMOUNT_BITS = cfg.getint('cost', 'amount_bits', fallback=10000)
+    AMOUNT_GIFTED_TIER1 = cfg.getint('cost', 'amount_gifted_tier1', fallback=20)
+    AMOUNT_GIFTED_TIER2 = cfg.getint('cost','amount_gifted_tier2', fallback=10)
+    AMOUNT_GIFTED_TIER3 = cfg.getint('cost', 'amount_gifted_tier3', fallback=5)
+    AMOUNT_TIP = cfg.getfloat('cost', 'amount_tip', fallback=100.00)
 
     CLEAN_PLAYLIST = cfg.getboolean('b0pperbot', 'clean_playlist', fallback=True)
     REQUEST_CMD = cfg.get('b0pperbot', 'request_cmd', fallback='request')
@@ -133,7 +133,7 @@ async def on_message(msg: ChatMessage):
         amount = 0
         credit = tippers.get(msg.user.name.lower(),0)
 
-        r = re.match(TIP_MESSAGE, msg.text)
+        r = re.match(TIP_REGEX, msg.text)
         if r:
             amount = float(r.groups()[1])
             print("dollar amount", amount)
@@ -145,7 +145,7 @@ async def on_message(msg: ChatMessage):
                 else:
                     credit = 1
 
-        r = re.match(BITS_MESSAGE, msg.text)
+        r = re.match(BITS_REGEX, msg.text)
         if r:
             amount = int(r.groups()[1])
             if amount >= AMOUNT_BITS:
@@ -155,7 +155,7 @@ async def on_message(msg: ChatMessage):
                 else:
                     credit = 1
 
-        r = re.match(GIFTED_MESSAGE, msg.text)
+        r = re.match(GIFTED_REGEX, msg.text)
         if r:
             tier = r.groups()[2]
             amount = int(r.groups()[1])
