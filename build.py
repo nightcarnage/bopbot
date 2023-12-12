@@ -3,7 +3,7 @@ import PyInstaller.__main__
 import shutil
 
 PyInstaller.__main__.run([
-    'b0pperbot.py',
+    'bopbot.py',
     '--onefile'
 ])
 

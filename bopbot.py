@@ -19,7 +19,7 @@ from twitchAPI.type import AuthScope, ChatEvent
 from twitchAPI.chat import Chat, EventData, ChatMessage, ChatSub, ChatCommand
 
 #global variables
-app_name = 'B0pperBot'
+app_name = 'BopBot'
 tippers = {}
 playlist_tracks = []
 sp = 0
@@ -61,14 +61,14 @@ else:
     AMOUNT_GIFTED_TIER3 = cfg.getint('cost', 'amount_gifted_tier3', fallback=5)
     AMOUNT_TIP = cfg.getfloat('cost', 'amount_tip', fallback=100.00)
 
-    CLEAN_PLAYLIST = cfg.getboolean('b0pperbot', 'clean_playlist', fallback=True)
-    REQUEST_CMD = cfg.get('b0pperbot', 'request_cmd', fallback='request')
-    SONG_CMD = cfg.get('b0pperbot', 'song_cmd', fallback='song')
-    CREDIT_CMD = cfg.get('b0pperbot', 'credit_cmd', fallback='credit')
-    DISABLE_CREDIT_CMD = cfg.getboolean('b0pperbot', 'disable_credit_cmd', fallback=False)
-    DISABLE_SONG_CMD = cfg.getboolean('b0pperbot', 'disable_song_cmd', fallback=False)
-    DISABLE_REQUEST_CMD = cfg.getboolean('b0pperbot', 'disable_request_cmd', fallback=False)
-    CUMULATIVE_CREDIT = cfg.getboolean('b0pperbot', 'cumulative_credit', fallback=True)
+    CLEAN_PLAYLIST = cfg.getboolean('bopbot', 'clean_playlist', fallback=True)
+    REQUEST_CMD = cfg.get('bopbot', 'request_cmd', fallback='request')
+    SONG_CMD = cfg.get('bopbot', 'song_cmd', fallback='song')
+    CREDIT_CMD = cfg.get('bopbot', 'credit_cmd', fallback='credit')
+    DISABLE_CREDIT_CMD = cfg.getboolean('bopbot', 'disable_credit_cmd', fallback=False)
+    DISABLE_SONG_CMD = cfg.getboolean('bopbot', 'disable_song_cmd', fallback=False)
+    DISABLE_REQUEST_CMD = cfg.getboolean('bopbot', 'disable_request_cmd', fallback=False)
+    CUMULATIVE_CREDIT = cfg.getboolean('bopbot', 'cumulative_credit', fallback=True)
 
     CREDIT_MESSAGE = cfg.get('messages', 'credit_message', fallback="f'@{username}, you have {credit} song request credit(s).")
     SONG_MESSAGE = cfg.get('messages', 'song_message', fallback="f'@{username}, current song is {name} by {artist}.'")
@@ -324,7 +324,7 @@ def request_start():
     global DISABLE_REQUEST_CMD
     global DISABLE_CREDIT_CMD
     DISABLE_REQUEST_CMD = False
-    DISABLE_CREDIT_CMD = cfg.getboolean('b0pperbot', 'disable_credit_cmd')
+    DISABLE_CREDIT_CMD = cfg.getboolean('bopbot', 'disable_credit_cmd')
     print('Requests are enabled.')
 
 def request_stop():
