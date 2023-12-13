@@ -7,3 +7,8 @@ config.ini.bkp
 config.ini
 gui/
 user_token.json
+templates/
+app.py
+oauth_custom.py
+static/
+bopbot_web.py

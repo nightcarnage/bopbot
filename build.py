@@ -8,3 +8,4 @@ PyInstaller.__main__.run([
 ])
 
 shutil.copyfile('./config.template.ini','./dist/config.ini')
+shutil.copyfile('./start.bat','./dist/start.bat')
