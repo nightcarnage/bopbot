@@ -12,3 +12,4 @@ app.py
 oauth_custom.py
 static/
 bopbot_web.py
+chat_custom.py
