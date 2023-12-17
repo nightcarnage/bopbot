@@ -1,21 +1,15 @@
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: rgb(209, 209, 209);
+    font-family: system-ui, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: rgb(41, 41, 41);
     padding: 0;
     margin: 0;
     line-height: 1.5;
-}
-
-#title{
-    font-family: monospace;
-    font-size: 15pt;
-    margin: 10px;
-    line-height: 1;
+    background: repeat url('/static/bg.jpg');
 }
 
 #wrap {
     width: 60%;
-    background-color: white;
+    background-color: rgb(211, 211, 211);
     margin: 0 auto;
     padding: 20px;
     box-shadow: 0 0 5px rgb(51, 51, 51)
@@ -23,12 +17,13 @@ body {
 
 #menu a {
     border-radius: 4px;
-    padding: 4px 8px;
+    padding: 4px 14px;
     display: inline-block;
     text-decoration: none;
     margin: 0;
     background-color: #8f8f8f;
     color: white;
+    font-size: 16pt;
 }
 #menu a:hover {
     background-color: #222222;
@@ -42,7 +37,7 @@ margin: 8px 0;
 border: none;
 border-radius: 4px;
 cursor: pointer;
-font-size: 12pt;
+font-size: 16pt;
 }
 
 input[type=submit]:hover {
@@ -56,15 +51,21 @@ input[type=text],input[type=password], select {
     display: inline-block;
     padding: 14px 20px;
     border: 1px solid #ccc;
-    background-color: rgb(231, 231, 231);
+    background-color: rgb(233, 233, 233);
     border-radius: 4px;
     box-sizing: border-box;
     font-size: 12pt;
 }
 
-  h2 {
-    font-size: 18pt;
-    text-decoration: underline;
-    font-weight: bold;
+h2 {
+font-size: 18pt;
+text-decoration: underline;
+font-weight: bold;
+margin: 4px;
+margin-bottom: 8px;
+}
+
+h1 {
     margin: 4px;
-  }
+    margin-top: 0;
+}

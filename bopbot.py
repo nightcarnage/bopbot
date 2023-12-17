@@ -23,6 +23,8 @@ from twisted.internet import reactor
 
 from jinja2 import Environment, FileSystemLoader
 
+from markdown import markdown
+
 #global variables
 app_name = 'BopBot'
 tippers = {}
@@ -585,15 +587,21 @@ async def run():
 
     print('Exiting...')
 
-def show_content(template):
+template = dict(
+    header = dict(title=app_name),
+    content = {},
+    footer = {},
+)
+
+def show_content(tmp):
 
     header = env.get_template('header.html')
-    content = env.get_template(template)
+    content = env.get_template(tmp)
     footer = env.get_template('footer.html')
 
-    data = header.render(title=app_name)
-    data += content.render()
-    data += footer.render()
+    data = header.render(**template['header'])
+    data += content.render(**template['content'])
+    data += footer.render(**template['footer'])
 
     return data.encode('utf-8')
 
@@ -601,12 +609,14 @@ class start(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
         request.setHeader('Content-Type', 'text/html; charset=utf-8')
+        template['header']['title'] = app_name + ' - start'
         return show_content('start.html')
 
 class configure(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
         request.setHeader('Content-Type', 'text/html; charset=utf-8')
+        template['header']['title']  = app_name + ' - configure'
         return show_content('configure.html')
     def render_POST(self, request):
         pass
@@ -616,19 +626,25 @@ class login(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
         request.setHeader('Content-Type', 'text/html; charset=utf-8')
+        template['header']['title'] = app_name + ' - login'
         return show_content('login.html')
 
 class logout(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
         request.setHeader('Content-Type', 'text/html; charset=utf-8')
-        return show_content('logout.html')
+        template['header']['title'] = app_name + ' - logout'
+        template['content']['message'] = 'You are now logged out.'
+        return show_content('message.html')
 
 class main(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
         request.setHeader('Content-Type', 'text/html; charset=utf-8')
-        return show_content('main.html')
+        template['header']['title'] = app_name
+        template['content']['message'] = markdown(open('README.md').read(),\
+                extensions=['extra','codehilite'], output_format='html5')
+        return show_content('message.html')
 
 class api(resource.Resource):
     isLeaf = True
@@ -640,7 +656,21 @@ class api(resource.Resource):
         else:
             return b''
 
-root = resource.Resource()
+class custom404(resource.Resource):
+    isLeaf = True
+    def render_GET(self, request):
+        request.setHeader('Content-Type', 'text/html; charset=utf-8')
+        template['header']['title'] = app_name + ' - Not Found'
+        template['content']['message'] = 'The page could not be found.'
+        return show_content('message.html')
+
+class _root(resource.Resource):
+    def getChild(self, path, request):
+        request.setHeader('Content-Type', 'text/html; charset=utf-8')
+        template['header']['title'] = app_name + ' - Not Found'
+        return custom404()
+
+root = _root()
 root.putChild(b'', main())
 root.putChild(b'static', static.File('./static'))
 root.putChild(b'start', start())
