@@ -4,55 +4,55 @@
             <h2>bopbot</h2>
 
             <label for="request_cmd">request command: </label>
-            <input type="text" name="request_cmd" id="request_cmd" value="request" required><br>
+            <input type="text" name="request_cmd" id="request_cmd" value="{{REQUEST_CMD}}" required><br>
             <label for="song_cmd">song command: </label>
-            <input type="text" name="song_cmd" id="song_cmd" value="song" required><br>
+            <input type="text" name="song_cmd" id="song_cmd" value="{{SONG_CMD}}" required><br>
             <p><label for="disable_credit_cmd">disable credit command: </label>
-            <input type="checkbox" name="disable_credit_cmd" id="disable_credit_cmd" required></p>
+            <input type="checkbox" name="disable_credit_cmd" id="disable_credit_cmd" {{DISABLE_CREDIT_CMD}} required></p>
             <p><label for="disable_request_cmd">disable request command: </label>
-            <input type="checkbox" name="disable_request_cmd" id="disable_request_cmd" required></p>
+            <input type="checkbox" name="disable_request_cmd" id="disable_request_cmd" {{DISABLE_REQUEST_CMD}} required></p>
             <p><label for="disable_song_cmd">disable song command: </label>
-            <input type="checkbox" name="disable_song_cmd" id="disable_song_cmd" required></p>
+            <input type="checkbox" name="disable_song_cmd" id="disable_song_cmd" {{DISABLE_SONG_CMD}} required></p>
             <p><label for="clean_playlist">clean playlist: </label>
-            <input type="checkbox" name="clean_playlist" id="clean_playlist" checked required></p>
+            <input type="checkbox" name="clean_playlist" id="clean_playlist" {{CLEAN_PLAYLIST}} required></p>
             <p><label for="cumulative_credit">cumulative credit: </label>
-            <input type="checkbox" name="cumulative_credit" id="cumulative_credit" required></p>
+            <input type="checkbox" name="cumulative_credit" id="cumulative_credit" {{CUMULATIVE_CREDIT}} required></p>
 
             <h2>cost</h2>
             
             <label for="amount_bits">bit cost: </label>
-            <input type="text" name="amount_bits" id="amount_bits" value="10000" required><br>
+            <input type="text" name="amount_bits" id="amount_bits" value="{{AMOUNT_BITS}}" required><br>
 
             <label for="amount_gifted_tier1">Sub tier 1 cost: </label>
-            <input type="text" name="amount_gifted_tier1" id="amount_gifted_tier1" value="20" required><br>
+            <input type="text" name="amount_gifted_tier1" id="amount_gifted_tier1" value="{{AMOUNT_GIFTED_TIER1}}" required><br>
             <label for="amount_gifted_tier2">Sub tier 2 cost: </label>
-            <input type="text" name="amount_gifted_tier2" id="amount_gifted_tier2" value="10" required><br>
+            <input type="text" name="amount_gifted_tier2" id="amount_gifted_tier2" value="{{AMOUNT_GIFTED_TIER2}}" required><br>
             <label for="amount_gifted_tier3">Sub tier 3 cost: </label>
-            <input type="text" name="amount_gifted_tier3" id="amount_gifted_tier3" value="5" required><br>
+            <input type="text" name="amount_gifted_tier3" id="amount_gifted_tier3" value="{{AMOUNT_GIFTED_TIER3}}" required><br>
 
             <label for="amount_tips">tip cost: </label>
-            <input type="text" name="amount_tips" id="amount_tips" value="100.00" required><br>
+            <input type="text" name="amount_tips" id="amount_tips" value="{{AMOUNT_TIPS}}" required><br>
 
             <h2>messages</h2>
 
             <label for="credit_message">credit message: </label>
-            <input type="text" name="credit_message" id="credit_message" value="f'@{username}, you have {credit} song request credit(s).'" required><br>
+            <input type="text" name="credit_message" id="credit_message" value="{{CREDIT_MESSAGE}}" required><br>
             <label for="song_message">song message: </label>
-            <input type="text" name="song_message" id="song_message" value="f'@{username}, current song is {name} by {artist}.'" required><br>
+            <input type="text" name="song_message" id="song_message" value="{{SONG_MESSAGE}}" required><br>
             <label for="no_song_message">no song message: </label>
-            <input type="text" name="no_song_message" id="no_song_message" value="f'@{username}, there is currently no song playing.'" required><br>
+            <input type="text" name="no_song_message" id="no_song_message" value="{{NO_SONG_MESSAGE}}" required><br>
             <label for="request_message">request message: </label>
-            <input type="text" name="request_message" id="request_message" value="f'@{username}, added {name} by {artist} to the playlist.'" required><br>
+            <input type="text" name="request_message" id="request_message" value="{{REQUEST_MESSAGE}}" required><br>
             <label for="notify_message">notify message: </label>
-            <input type="text" name="notify_message" id="notify_message" value="f'@{username}, you now have {credit} song request credit(s).'" required><br>
+            <input type="text" name="notify_message" id="notify_message" value="{{NOTIFY_MESSAGE}}" required><br>
 
             <h2>spotify</h2>
             <label for="spotify_client_id">client id: </label>
-            <input type="text" name="spotify_client_id" id="client_id" value="" required><br>
+            <input type="text" name="spotify_client_id" id="client_id" value="{{SPOTIFY_CLIENT_ID}}" required><br>
             <label for="spotify_secret_key">secret key: </label>
-            <input type="text" name="sppotify_secret_key" id="spotify_secret_key" value="" required><br>
+            <input type="text" name="sppotify_secret_key" id="spotify_secret_key" value="{{SPOTIFY_SECRET_KEY}}" required><br>
             <label for="spotify_request_uri">request url: </label>
-            <input type="text" name="spotify_request_uri" id="spotify_request_uri" value="" required><br>
+            <input type="text" name="spotify_request_uri" id="spotify_request_uri" value="{{SPOTIFY_REQUEST_URI}}" required><br>
 
             <h2>twitch</h2>
 

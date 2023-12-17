@@ -20,10 +20,17 @@ from twitchAPI.chat import Chat, EventData, ChatMessage, ChatSub, ChatCommand
 
 from twisted.web import server, resource, static
 from twisted.internet import reactor
+from twisted.web.util import redirectTo
+
+import html
+import json
 
 from jinja2 import Environment, FileSystemLoader
 
 from markdown import markdown
+
+import bcrypt
+from getpass import getpass
 
 #global variables
 app_name = 'BopBot'
@@ -32,6 +39,9 @@ playlist_tracks = []
 sp = 0
 env = Environment(loader=FileSystemLoader('templates/'))
 cfg = configparser.ConfigParser()
+error = None
+quit = False
+auth_sessions = []
 
 BOPBOT_WEB = 0
 TWITCH_CLIENT_ID = 0
@@ -67,9 +77,13 @@ REQUEST_MESSAGE = 0
 NOTIFY_MESSAGE = 0
 
 def fail(*args):
-    print( ' '.join(map(str,args)))
-    print('Exiting...')
-    exit(-1)
+    global error
+    er = ' '.join(map(str,args))
+    error = er
+    print(er)
+    return er
+    #print('Exiting...')
+    #exit(-1)
 
 #read from config.ini
 def read_conf():
@@ -121,7 +135,7 @@ def read_conf():
         SPOTIFY_PLAYLIST_URL = cfg['spotify']['playlist_url']
         SPOTIFY_PLAYLIST_URI = ''
     except Exception as r:
-        fail('Error reading "config.ini".', str(r))
+        return fail('Error reading "config.ini".', str(r))
     else:
         SPOTIFY_REQUEST_URI = cfg.get('spotify', 'request_uri', fallback='http://localhost:3000')
 
@@ -178,7 +192,7 @@ def cache_playlist():
         for track in playlist_tracks:
             track['track']['requested'] = False
     except Exception as r:
-        fail('Error getting Spotify playlist.', str(r))
+        return fail('Error getting Spotify playlist.', str(r))
 
 async def room_join(chn): 
     print('Joining channel:', chn)
@@ -426,7 +440,7 @@ async def authenticate():
             scope=scope
             ))
     except Exception as r:
-        fail('Error connecting to Spotify.', str(r))
+        return fail('Error connecting to Spotify.', str(r))
     
     global SPOTIFY_PLAYLIST_URL
     global SPOTIFY_PLAYLIST_URI
@@ -452,7 +466,7 @@ async def authenticate():
                 if r:
                     SPOTIFY_PLAYLIST_URI = r.groups()[0]
                 else:
-                    fail('Invalid playlist URL.')
+                    return fail('Invalid playlist URL.')
     else:
         print()
         print('Using config playlist URL:', SPOTIFY_PLAYLIST_URL)
@@ -460,7 +474,7 @@ async def authenticate():
         if r:
             SPOTIFY_PLAYLIST_URI = r.groups()[0]
         else:
-            fail('Invalid playlist URL.')
+            return fail('Invalid playlist URL.')
     print()
 
 
@@ -473,7 +487,7 @@ async def authenticate():
         token, refresh_token = await auth.authenticate()
         await twitch.set_user_authentication(token, twitch_scope, refresh_token)
     except Exception as r:
-        fail('Error conneceting to Twitch.', str(r))
+        return fail('Error connecting to Twitch.', str(r))
 
 
     try:
@@ -486,32 +500,20 @@ async def authenticate():
 
         chat.start()
     except Exception as r:
-        fail('Error enterting chat and registering commands.', str(r))
+        return fail('Error enterting chat and registering commands.', str(r))
     
     cache_playlist()
 
-def run_command(line):
+async def run_command(line):
 
     global tippers
     global playlist_tracks
+    global quit
 
     line = line.split()
-    cmd = line[0]
+    cmd = line[0].encode('utf-8')
 
-    if cmd == b'help' and not BOPBOT_WEB:
-        if len(line) >= 2:
-            help(line[1])
-        else:
-            help()
-    if cmd == b'quit' or cmd == b'exit' and not BOPBOT_WEB:
-        quit = True
-
-    if cmd == b'give':
-        if len(line) >= 2:
-            give(line[1])
-        else:
-            print('No <username> specified.')
-    
+    #commands that can be used while there is an error
     if cmd == b'reset':
         print('Clearing tippers list...')
         tippers = {}
@@ -521,7 +523,8 @@ def run_command(line):
         print('Clearing playlist cache...')
         playlist_tracks = []
 
-        cache_playlist()
+        await run()
+        
     if cmd == b'refresh':
         clean_playlist()
         print('Clearing playlist cache...')
@@ -529,17 +532,36 @@ def run_command(line):
 
         cache_playlist()
     
-    if cmd == b'tippers':
-        pprint(tippers)
+    if cmd == b'quit' or cmd == b'exit' and not BOPBOT_WEB:
+            quit = True
     
-    if cmd == b'playlist':
-        pprint(playlist_tracks)
-    
-    if cmd == b'start':
-        request_start()
-    
-    if cmd == b'stop':
-        request_stop()
+    #commands that cannot be used if there is an error
+    if not error:
+
+        if cmd == b'help' and not BOPBOT_WEB:
+            if len(line) >= 2:
+                help(line[1])
+            else:
+                help()
+
+        if cmd == b'give':
+            if len(line) >= 2:
+                give(line[1])
+            else:
+                print('No <username> specified.')
+        
+        if cmd == b'tippers':
+            pprint(tippers)
+        
+        if cmd == b'playlist':
+            pprint(playlist_tracks)
+        
+        if cmd == b'start':
+            request_start()
+        
+        if cmd == b'stop':
+            request_stop()
+
     return b''
 
 #set up twitch and spotify interface and main program loop
@@ -561,15 +583,14 @@ async def run():
 
     print(app_name, 'has started.')
 
-    #authenticate()
-    #room_join(TARGET_CHANNEL)
+    #await authenticate()
+    #await room_join(TARGET_CHANNEL)
 
     if BOPBOT_WEB:
         site = server.Site(root)
         reactor.listenTCP(8080, site)
         reactor.startRunning(False)
 
-    quit = False
     while not quit:
 
         if BOPBOT_WEB:
@@ -577,7 +598,9 @@ async def run():
         else:
             line = input()
             if len(line.split()) >= 1:
-                run_command(line)
+                if error:
+                    print('Error requires correction:', str(error))
+                await run_command(line)
 
     print('Leaving Twitch...')
     chat.stop()
@@ -605,9 +628,21 @@ def show_content(tmp):
 
     return data.encode('utf-8')
 
+def custom402(request):
+    request.setHeader('Content-Type', 'text/html; charset=utf-8')
+    request.setResponseCode(402)
+    template['content']['message'] = markdown('#Not Authorized\n\nThe page requires authorization.')
+    return show_content('message.html')
+
+def needs_auth(session):
+    if session.uid in auth_sessions:
+        return False
+    return True
+
 class start(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
+        if needs_auth(request.getSession()): return custom402(request)
         request.setHeader('Content-Type', 'text/html; charset=utf-8')
         template['header']['title'] = app_name + ' - start'
         return show_content('start.html')
@@ -615,6 +650,7 @@ class start(resource.Resource):
 class configure(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
+        if needs_auth(request.getSession()): return custom402(request)
         request.setHeader('Content-Type', 'text/html; charset=utf-8')
         template['header']['title']  = app_name + ' - configure'
         return show_content('configure.html')
@@ -628,10 +664,43 @@ class login(resource.Resource):
         request.setHeader('Content-Type', 'text/html; charset=utf-8')
         template['header']['title'] = app_name + ' - login'
         return show_content('login.html')
+    def render_POST(self, request):
+        
+        username = request.args[b'username'][0].decode('utf-8')
+        password = request.args[b'password'][0].decode('utf-8')
+
+        username = html.escape(username)
+        password = html.escape(password)
+
+        salt = ''
+        hashed_pass = ''
+        passwd = json.loads(open('passwd.json').read())
+
+        if username in passwd.keys():
+            salt = passwd[username]['salt']
+            hashed_pass = passwd[username]['pass'].encode('utf-8')
+        else:
+            return custom402(request)
+        
+        test = password + salt
+        test_hash = bcrypt.hashpw(test.encode('utf-8'), salt.encode('utf-8'))
+
+        if hashed_pass == test_hash:
+            global auth_sessions
+            if not request.getSession().uid in auth_sessions:
+                auth_sessions.append(request.getSession().uid)
+            return redirectTo(b'/app/start', request)
+
+        return custom402(request)
 
 class logout(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
+        if needs_auth(request.getSession()): return custom402(request)
+        global auth_sessions
+        if request.getSession().uid in auth_sessions:
+            auth_sessions.remove(request.getSession().uid)
+        request.getSession().expire()
         request.setHeader('Content-Type', 'text/html; charset=utf-8')
         template['header']['title'] = app_name + ' - logout'
         template['content']['message'] = 'You are now logged out.'
@@ -649,6 +718,7 @@ class main(resource.Resource):
 class api(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
+        if needs_auth(request.getSession()): return custom402(request)
         request.setHeader('Content-Type', 'text/html; charset=utf-8')
         if b'cmd' in request.args:
             r = run_command(request.args[b'cmd'][0])
@@ -660,24 +730,32 @@ class custom404(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
         request.setHeader('Content-Type', 'text/html; charset=utf-8')
+        request.setResponseCode(404)
         template['header']['title'] = app_name + ' - Not Found'
-        template['content']['message'] = 'The page could not be found.'
+        template['content']['message'] = markdown('#Not Found\n\nThe page could not be found.')
         return show_content('message.html')
 
 class _root(resource.Resource):
     def getChild(self, path, request):
-        request.setHeader('Content-Type', 'text/html; charset=utf-8')
-        template['header']['title'] = app_name + ' - Not Found'
+        return custom404()
+
+class _auth(resource.Resource):
+    def getChild(self, path, request):
         return custom404()
 
 root = _root()
 root.putChild(b'', main())
 root.putChild(b'static', static.File('./static'))
-root.putChild(b'start', start())
-root.putChild(b'configure', configure())
-root.putChild(b'login', login())
-root.putChild(b'logout', logout())
-root.putChild(b'api', api())
+app = _root()
+app.putChild(b'start', start())
+app.putChild(b'configure', configure())
+app.putChild(b'api', api())
+root.putChild(b'app', app)
+auth = _root()
+auth.putChild(b'login', login())
+auth.putChild(b'logout', logout())
+root.putChild(b'auth', auth)
+
 
 if __name__ == '__main__':
     asyncio.run(run())

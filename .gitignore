@@ -6,3 +6,5 @@ dist/
 config.ini.bkp
 config.ini
 user_token.json
+passwd.json
+TODO.txt
