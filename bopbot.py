@@ -18,11 +18,51 @@ from twitchAPI.oauth import UserAuthenticationStorageHelper
 from twitchAPI.type import AuthScope, ChatEvent
 from twitchAPI.chat import Chat, EventData, ChatMessage, ChatSub, ChatCommand
 
+from twisted.web import server, resource, static
+from twisted.internet import reactor
+
+from jinja2 import Environment, FileSystemLoader
+
 #global variables
 app_name = 'BopBot'
 tippers = {}
 playlist_tracks = []
 sp = 0
+env = Environment(loader=FileSystemLoader('templates/'))
+cfg = configparser.ConfigParser()
+
+BOPBOT_WEB = 0
+TWITCH_CLIENT_ID = 0
+TWITCH_SECRET = 0
+TARGET_CHANNEL = 0
+SPOTIFY_CLIENT_ID = 0
+SPOTIFY_SECRET = 0
+SPOTIFY_PLAYLIST_URL = 0
+SPOTIFY_PLAYLIST_URI = 0
+SPOTIFY_REQUEST_URI = 0
+GIFTED_REGEX = 0
+BITS_REGEX = 0
+TIP_REGEX = 0
+SIGNAL_BOT = 0
+TWITCH_REQUEST_URI = 0
+AMOUNT_BITS = 0
+AMOUNT_GIFTED_TIER1 = 0
+AMOUNT_GIFTED_TIER2 = 0
+AMOUNT_GIFTED_TIER3 = 0
+AMOUNT_TIP = 0
+CLEAN_PLAYLIST = 0
+REQUEST_CMD = 0
+SONG_CMD = 0
+CREDIT_CMD = 0
+DISABLE_CREDIT_CMD = 0
+DISABLE_SONG_CMD = 0
+DISABLE_REQUEST_CMD = 0
+CUMULATIVE_CREDIT = 0
+CREDIT_MESSAGE = 0
+SONG_MESSAGE = 0
+NO_SONG_MESSAGE = 0
+REQUEST_MESSAGE = 0
+NOTIFY_MESSAGE = 0
 
 def fail(*args):
     print( ' '.join(map(str,args)))
@@ -30,51 +70,86 @@ def fail(*args):
     exit(-1)
 
 #read from config.ini
-cfg = configparser.ConfigParser()
+def read_conf():
 
-try:
-    cfg.read('config.ini')
+    global BOPBOT_WEB
+    global TWITCH_CLIENT_ID
+    global TWITCH_SECRET
+    global TARGET_CHANNEL
+    global SPOTIFY_CLIENT_ID
+    global SPOTIFY_SECRET
+    global SPOTIFY_PLAYLIST_URL
+    global SPOTIFY_PLAYLIST_URI
+    global SPOTIFY_REQUEST_URI
+    global GIFTED_REGEX
+    global BITS_REGEX
+    global TIP_REGEX
+    global SIGNAL_BOT
+    global TWITCH_REQUEST_URI
+    global AMOUNT_BITS
+    global AMOUNT_GIFTED_TIER1
+    global AMOUNT_GIFTED_TIER2
+    global AMOUNT_GIFTED_TIER3
+    global AMOUNT_TIP
+    global CLEAN_PLAYLIST
+    global REQUEST_CMD
+    global SONG_CMD
+    global CREDIT_CMD
+    global DISABLE_CREDIT_CMD
+    global DISABLE_SONG_CMD
+    global DISABLE_REQUEST_CMD
+    global CUMULATIVE_CREDIT
+    global CREDIT_MESSAGE
+    global SONG_MESSAGE
+    global NO_SONG_MESSAGE
+    global REQUEST_MESSAGE
+    global NOTIFY_MESSAGE
 
-    TWITCH_CLIENT_ID = cfg['twitch']['client_id']
-    TWITCH_SECRET = cfg['twitch']['secret_key']
-    TARGET_CHANNEL = cfg['twitch']['channel']
+    try:
+        cfg.read('config.ini')
 
-    SPOTIFY_CLIENT_ID = cfg['spotify']['client_id']
-    SPOTIFY_SECRET = cfg['spotify']['secret_key']
-    SPOTIFY_PLAYLIST_URL = cfg['spotify']['playlist_url']
-    SPOTIFY_PLAYLIST_URI = ''
-except Exception as r:
-    fail('Error reading "config.ini".', str(r))
-else:
-    SPOTIFY_REQUEST_URI = cfg.get('spotify', 'request_uri', fallback='http://localhost:3000')
+        BOPBOT_WEB = cfg.getboolean('bopbot', 'bopbot_web', fallback=False)
 
-    GIFTED_REGEX = cfg.get('twitch', 'gifted_regex', fallback='.* just gifted [1-9][0-9]* Tier [1-3]? subscriptions!')
-    BITS_REGEX = cfg.get('twitch', 'bits_regex', fallback='Thank you .* for donating [1-9][0-9]* bits')
-    TIP_REGEX = cfg.get('twitch', 'tip_regex', fallback='Thank you .* for tipping \$(0|[1-9][0-9])*\.(0|[0-9][0-9])??!')
+        TWITCH_CLIENT_ID = cfg['twitch']['client_id']
+        TWITCH_SECRET = cfg['twitch']['secret_key']
+        TARGET_CHANNEL = cfg['twitch']['channel']
 
-    SIGNAL_BOT = cfg.get('twitch', 'signal_bot', fallback='Streamlabs')
-    TWITCH_REQUEST_URI = cfg.get('twitch', 'request_uri', fallback='http://localhost:17563')
+        SPOTIFY_CLIENT_ID = cfg['spotify']['client_id']
+        SPOTIFY_SECRET = cfg['spotify']['secret_key']
+        SPOTIFY_PLAYLIST_URL = cfg['spotify']['playlist_url']
+        SPOTIFY_PLAYLIST_URI = ''
+    except Exception as r:
+        fail('Error reading "config.ini".', str(r))
+    else:
+        SPOTIFY_REQUEST_URI = cfg.get('spotify', 'request_uri', fallback='http://localhost:3000')
 
-    AMOUNT_BITS = cfg.getint('cost', 'amount_bits', fallback=10000)
-    AMOUNT_GIFTED_TIER1 = cfg.getint('cost', 'amount_gifted_tier1', fallback=20)
-    AMOUNT_GIFTED_TIER2 = cfg.getint('cost','amount_gifted_tier2', fallback=10)
-    AMOUNT_GIFTED_TIER3 = cfg.getint('cost', 'amount_gifted_tier3', fallback=5)
-    AMOUNT_TIP = cfg.getfloat('cost', 'amount_tip', fallback=100.00)
+        GIFTED_REGEX = cfg.get('twitch', 'gifted_regex', fallback='.* just gifted [1-9][0-9]* Tier [1-3]? subscriptions!')
+        BITS_REGEX = cfg.get('twitch', 'bits_regex', fallback='Thank you .* for donating [1-9][0-9]* bits')
+        TIP_REGEX = cfg.get('twitch', 'tip_regex', fallback='Thank you .* for tipping \$(0|[1-9][0-9])*\.(0|[0-9][0-9])??!')
 
-    CLEAN_PLAYLIST = cfg.getboolean('bopbot', 'clean_playlist', fallback=True)
-    REQUEST_CMD = cfg.get('bopbot', 'request_cmd', fallback='request')
-    SONG_CMD = cfg.get('bopbot', 'song_cmd', fallback='song')
-    CREDIT_CMD = cfg.get('bopbot', 'credit_cmd', fallback='credit')
-    DISABLE_CREDIT_CMD = cfg.getboolean('bopbot', 'disable_credit_cmd', fallback=False)
-    DISABLE_SONG_CMD = cfg.getboolean('bopbot', 'disable_song_cmd', fallback=False)
-    DISABLE_REQUEST_CMD = cfg.getboolean('bopbot', 'disable_request_cmd', fallback=False)
-    CUMULATIVE_CREDIT = cfg.getboolean('bopbot', 'cumulative_credit', fallback=True)
+        SIGNAL_BOT = cfg.get('twitch', 'signal_bot', fallback='Streamlabs')
+        TWITCH_REQUEST_URI = cfg.get('twitch', 'request_uri', fallback='http://localhost:17563')
 
-    CREDIT_MESSAGE = cfg.get('messages', 'credit_message', fallback="f'@{username}, you have {credit} song request credit(s).")
-    SONG_MESSAGE = cfg.get('messages', 'song_message', fallback="f'@{username}, current song is {name} by {artist}.'")
-    NO_SONG_MESSAGE = cfg.get('messages', 'no_song_message', fallback="f'@{username}, there is currently no song playing.'")
-    REQUEST_MESSAGE = cfg.get('messages', 'request_message', fallback="f'@{username}, added {name} by {artist} to the playlist.'")
-    NOTIFY_MESSAGE = cfg.get('messages', 'notify_message', fallback="f'@{username}, you now have {credit} song request credit(s).'")
+        AMOUNT_BITS = cfg.getint('cost', 'amount_bits', fallback=10000)
+        AMOUNT_GIFTED_TIER1 = cfg.getint('cost', 'amount_gifted_tier1', fallback=20)
+        AMOUNT_GIFTED_TIER2 = cfg.getint('cost','amount_gifted_tier2', fallback=10)
+        AMOUNT_GIFTED_TIER3 = cfg.getint('cost', 'amount_gifted_tier3', fallback=5)
+        AMOUNT_TIP = cfg.getfloat('cost', 'amount_tip', fallback=100.00)
+
+        CLEAN_PLAYLIST = cfg.getboolean('bopbot', 'clean_playlist', fallback=True)
+        REQUEST_CMD = cfg.get('bopbot', 'request_cmd', fallback='request')
+        SONG_CMD = cfg.get('bopbot', 'song_cmd', fallback='song')
+        CREDIT_CMD = cfg.get('bopbot', 'credit_cmd', fallback='credit')
+        DISABLE_CREDIT_CMD = cfg.getboolean('bopbot', 'disable_credit_cmd', fallback=False)
+        DISABLE_SONG_CMD = cfg.getboolean('bopbot', 'disable_song_cmd', fallback=False)
+        DISABLE_REQUEST_CMD = cfg.getboolean('bopbot', 'disable_request_cmd', fallback=False)
+        CUMULATIVE_CREDIT = cfg.getboolean('bopbot', 'cumulative_credit', fallback=True)
+
+        CREDIT_MESSAGE = cfg.get('messages', 'credit_message', fallback="f'@{username}, you have {credit} song request credit(s).")
+        SONG_MESSAGE = cfg.get('messages', 'song_message', fallback="f'@{username}, current song is {name} by {artist}.'")
+        NO_SONG_MESSAGE = cfg.get('messages', 'no_song_message', fallback="f'@{username}, there is currently no song playing.'")
+        REQUEST_MESSAGE = cfg.get('messages', 'request_message', fallback="f'@{username}, added {name} by {artist} to the playlist.'")
+        NOTIFY_MESSAGE = cfg.get('messages', 'notify_message', fallback="f'@{username}, you now have {credit} song request credit(s).'")
 
 #cache the playlist into a list
 def cache_playlist():
@@ -103,12 +178,14 @@ def cache_playlist():
     except Exception as r:
         fail('Error getting Spotify playlist.', str(r))
 
+async def room_join(chn): 
+    print('Joining channel:', chn)
+    await ready_event.chat.join_room(chn)
+
 #setup playlist when Twitch is ready and Spotify connection established
 async def on_ready(ready_event: EventData):
 
     print(app_name, 'is ready.')
-    print('Joining channel:', TARGET_CHANNEL)
-    await ready_event.chat.join_room(TARGET_CHANNEL)
     print()
     help()
 
@@ -282,7 +359,7 @@ async def request_command(cmd: ChatCommand):
             tr = sp.currently_playing()
 
             if tr == None:
-                print("Song cannot be added because there is no song from the playlist in the queue.")
+                print('Song cannot be added because there is no song from the playlist in the queue.')
                 return
    
             tippers[cmd.user.name.lower()] -= 1
@@ -311,7 +388,7 @@ async def request_command(cmd: ChatCommand):
                 playlist_tracks.insert(ci, {'track': nt})
 
                 name = track['name']
-                artist = track['artists'][0]["name"]
+                artist = track['artists'][0]['name']
                 username = cmd.user.name
 
                 await cmd.reply(eval(REQUEST_MESSAGE))
@@ -334,23 +411,7 @@ def request_stop():
     DISABLE_CREDIT_CMD = True
     print('Requests are disabled.')
 
-#set up twitch and spotify interface and main program loop
-async def run():
-
-    global tippers
-    global playlist_tracks
-
-    print()
-    print(
-'''
- ██▄ ▄▀▄ █▀▄ ██▄ ▄▀▄ ▀█▀
- █▄█ ▀▄▀ █▀  █▄█ ▀▄▀  █ 
-'''
-)
-    print()
-
-    print(app_name, 'is starting...')
-
+async def authenticate():
     global sp
     try:
         print('Authenticating with Spotify...')
@@ -400,9 +461,6 @@ async def run():
             fail('Invalid playlist URL.')
     print()
 
-    cache_playlist()
-
-    print()
 
     try:
         print('Authenticating with Twitch...')
@@ -427,58 +485,97 @@ async def run():
         chat.start()
     except Exception as r:
         fail('Error enterting chat and registering commands.', str(r))
+    
+    cache_playlist()
+
+def run_command(line):
+
+    global tippers
+    global playlist_tracks
+
+    line = line.split()
+    cmd = line[0]
+
+    if cmd == b'help' and not BOPBOT_WEB:
+        if len(line) >= 2:
+            help(line[1])
+        else:
+            help()
+    if cmd == b'quit' or cmd == b'exit' and not BOPBOT_WEB:
+        quit = True
+
+    if cmd == b'give':
+        if len(line) >= 2:
+            give(line[1])
+        else:
+            print('No <username> specified.')
+    
+    if cmd == b'reset':
+        print('Clearing tippers list...')
+        tippers = {}
+        
+        clean_playlist()
+
+        print('Clearing playlist cache...')
+        playlist_tracks = []
+
+        cache_playlist()
+    if cmd == b'refresh':
+        clean_playlist()
+        print('Clearing playlist cache...')
+        playlist_tracks = []
+
+        cache_playlist()
+    
+    if cmd == b'tippers':
+        pprint(tippers)
+    
+    if cmd == b'playlist':
+        pprint(playlist_tracks)
+    
+    if cmd == b'start':
+        request_start()
+    
+    if cmd == b'stop':
+        request_stop()
+    return b''
+
+#set up twitch and spotify interface and main program loop
+async def run():
+
+    global tippers
+    global playlist_tracks
+    
+    read_conf()
+
+    print()
+    print(
+'''
+ ██▄ ▄▀▄ █▀▄ ██▄ ▄▀▄ ▀█▀
+ █▄█ ▀▄▀ █▀  █▄█ ▀▄▀  █ 
+'''
+)
+    print()
+
+    print(app_name, 'has started.')
+
+    #authenticate()
+    #room_join(TARGET_CHANNEL)
+
+    if BOPBOT_WEB:
+        site = server.Site(root)
+        reactor.listenTCP(8080, site)
+        reactor.startRunning(False)
 
     quit = False
     while not quit:
 
-        line = input()
-        line = line.split()
-        
-        if len(line) >= 1:
-            cmd = line[0]
-
-            if cmd == 'help':
-                if len(line) >= 2:
-                    help(line[1])
-                else:
-                    help()
-            if cmd == 'quit' or cmd == 'exit':
-                quit = True
-            
-            if cmd == 'give':
-                if len(line) >= 2:
-                    give(line[1])
-                else:
-                    print('No <username> specified.')
-            
-            if cmd == 'reset':
-                print('Clearing tippers list...')
-                tippers = {}
-                
-                clean_playlist()
-
-                print('Clearing playlist cache...')
-                playlist_tracks = []
-
-                cache_playlist()
-            if cmd == 'refresh':
-                clean_playlist()
-                print('Clearing playlist cache...')
-                playlist_tracks = []
-
-                cache_playlist()
-            
-            if cmd == 'tippers':
-                pprint(tippers)
-            
-            if cmd == 'playlist':
-                pprint(playlist_tracks)
-            
-            if cmd == 'start':
-                request_start()
-            
-            if cmd == 'stop':
-                request_stop()
+        if BOPBOT_WEB:
+            reactor.iterate()
+        else:
+            line = input()
+            if len(line.split()) >= 1:
+                run_command(line)
 
     print('Leaving Twitch...')
     chat.stop()
@@ -487,6 +584,70 @@ async def run():
     clean_playlist()
 
     print('Exiting...')
+
+def show_content(template):
+
+    header = env.get_template('header.html')
+    content = env.get_template(template)
+    footer = env.get_template('footer.html')
+
+    data = header.render(title=app_name)
+    data += content.render()
+    data += footer.render()
+
+    return data.encode('utf-8')
+
+class start(resource.Resource):
+    isLeaf = True
+    def render_GET(self, request):
+        request.setHeader('Content-Type', 'text/html; charset=utf-8')
+        return show_content('start.html')
+
+class configure(resource.Resource):
+    isLeaf = True
+    def render_GET(self, request):
+        request.setHeader('Content-Type', 'text/html; charset=utf-8')
+        return show_content('configure.html')
+    def render_POST(self, request):
+        pass
+        #TODO
+    
+class login(resource.Resource):
+    isLeaf = True
+    def render_GET(self, request):
+        request.setHeader('Content-Type', 'text/html; charset=utf-8')
+        return show_content('login.html')
+
+class logout(resource.Resource):
+    isLeaf = True
+    def render_GET(self, request):
+        request.setHeader('Content-Type', 'text/html; charset=utf-8')
+        return show_content('logout.html')
+
+class main(resource.Resource):
+    isLeaf = True
+    def render_GET(self, request):
+        request.setHeader('Content-Type', 'text/html; charset=utf-8')
+        return show_content('main.html')
+
+class api(resource.Resource):
+    isLeaf = True
+    def render_GET(self, request):
+        request.setHeader('Content-Type', 'text/html; charset=utf-8')
+        if b'cmd' in request.args:
+            r = run_command(request.args[b'cmd'][0])
+            return r
+        else:
+            return b''
+
+root = resource.Resource()
+root.putChild(b'', main())
+root.putChild(b'static', static.File('./static'))
+root.putChild(b'start', start())
+root.putChild(b'configure', configure())
+root.putChild(b'login', login())
+root.putChild(b'logout', logout())
+root.putChild(b'api', api())
 
 if __name__ == '__main__':
     asyncio.run(run())
