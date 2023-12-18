@@ -13,22 +13,24 @@
             <input type="text" name="request_cmd" id="request_cmd" value="{{REQUEST_CMD}}" required><br>
             <label for="song_cmd">song command: </label>
             <input type="text" name="song_cmd" id="song_cmd" value="{{SONG_CMD}}" required><br>
+            <label for="credit_cmd">credit command: </label>
+            <input type="text" name="credit_cmd" id="credit_cmd" value="{{CREDIT_CMD}}" required><br>
+
             <p><label for="disable_credit_cmd">disable credit command: </label>
-            <input type="checkbox" name="disable_credit_cmd" id="disable_credit_cmd" {{DISABLE_CREDIT_CMD}} required></p>
+            <input type="checkbox" name="disable_credit_cmd" id="disable_credit_cmd" {{DISABLE_CREDIT_CMD}}></p>
             <p><label for="disable_request_cmd">disable request command: </label>
-            <input type="checkbox" name="disable_request_cmd" id="disable_request_cmd" {{DISABLE_REQUEST_CMD}} required></p>
+            <input type="checkbox" name="disable_request_cmd" id="disable_request_cmd" {{DISABLE_REQUEST_CMD}}></p>
             <p><label for="disable_song_cmd">disable song command: </label>
-            <input type="checkbox" name="disable_song_cmd" id="disable_song_cmd" {{DISABLE_SONG_CMD}} required></p>
+            <input type="checkbox" name="disable_song_cmd" id="disable_song_cmd" {{DISABLE_SONG_CMD}}></p>
             <p><label for="clean_playlist">clean playlist: </label>
-            <input type="checkbox" name="clean_playlist" id="clean_playlist" {{CLEAN_PLAYLIST}} required></p>
+            <input type="checkbox" name="clean_playlist" id="clean_playlist" {{CLEAN_PLAYLIST}}></p>
             <p><label for="cumulative_credit">cumulative credit: </label>
-            <input type="checkbox" name="cumulative_credit" id="cumulative_credit" {{CUMULATIVE_CREDIT}} required></p>
+            <input type="checkbox" name="cumulative_credit" id="cumulative_credit" {{CUMULATIVE_CREDIT}}></p>
             </td><td>
             <h2>cost</h2>
             
             <label for="amount_bits">bit cost: </label>
             <input type="text" name="amount_bits" id="amount_bits" value="{{AMOUNT_BITS}}" required><br>
-
             <label for="amount_gifted_tier1">Sub tier 1 cost: </label>
             <input type="text" name="amount_gifted_tier1" id="amount_gifted_tier1" value="{{AMOUNT_GIFTED_TIER1}}" required><br>
             <label for="amount_gifted_tier2">Sub tier 2 cost: </label>
@@ -36,8 +38,8 @@
             <label for="amount_gifted_tier3">Sub tier 3 cost: </label>
             <input type="text" name="amount_gifted_tier3" id="amount_gifted_tier3" value="{{AMOUNT_GIFTED_TIER3}}" required><br>
 
-            <label for="amount_tips">tip cost: </label>
-            <input type="text" name="amount_tips" id="amount_tips" value="{{AMOUNT_TIPS}}" required><br>
+            <label for="amount_tip">tip cost: </label>
+            <input type="text" name="amount_tip" id="amount_tip" value="{{AMOUNT_TIP}}" required><br>
               </td><td>
             <h2>messages</h2>
 
@@ -55,37 +57,40 @@
             <h2>spotify</h2>
             <label for="spotify_client_id">client id: </label>
             <input type="text" name="spotify_client_id" id="client_id" value="{{SPOTIFY_CLIENT_ID}}" required><br>
-            <label for="spotify_secret_key">secret key: </label>
-            <input type="text" name="sppotify_secret_key" id="spotify_secret_key" value="{{SPOTIFY_SECRET_KEY}}" required><br>
+            <label for="spotify_secret">secret key: </label>
+            <input type="text" name="spotify_secret" id="spotify_secret" value="{{SPOTIFY_SECRET}}" required><br>
+            <label for="playlist_url">playlist url: </label>
+            <input type="text" name="playlist_url" id="playlist_url" value="{{SPOTIFY_PLAYLIST_URL}}"><br>
+            
             <label for="spotify_request_uri">request url: </label>
             <input type="text" name="spotify_request_uri" id="spotify_request_uri" value="{{SPOTIFY_REQUEST_URI}}" required><br>
                 </td><td>
                   <h2>twitch</h2>
 
             <label for="twitch_client_id">client id: </label>
-            <input type="text" name="twitch_client_id" id="client_id" value="" required><br>
-            <label for="twitch_secret_key">secret key: </label>
-            <input type="text" name="twitch_secret_key" id="twitch_secret_key" value="" required><br>
+            <input type="text" name="twitch_client_id" id="client_id" value="{{TWITCH_CLIENT_ID}}" required><br>
+            <label for="twitch_secret">secret key: </label>
+            <input type="text" name="twitch_secret" id="twitch_secret" value="{{TWITCH_SECRET}}" required><br>
 
-            <label for="channel">channel: </label>
-            <input type="text" name="channel" id="twitch_secret_key" value="" required><br>
+            <label for="target_channel">channel: </label>
+            <input type="text" name="target_channel" id="target_channel" value="{{TARGET_CHANNEL}}" required><br>
 
             <label for="signal_bot">signal bot: </label>
-            <input type="text" name="signal_bot" id="signal_bot" value="" required><br>    
+            <input type="text" name="signal_bot" id="signal_bot" value="{{SIGNAL_BOT}}" required><br>    
             
             <label for="twitch_request_uri">request url: </label>
-            <input type="text" name="twitch_request_uri" id="twitch_request_uri" value="" required><br>
+            <input type="text" name="twitch_request_uri" id="twitch_request_uri" value="{{TWITCH_REQUEST_URI}}" required><br>
                 </td>
                 <td>
 
-                  <h2>Reg Exp.</h2>
+                  <h2>reg exp</h2>
 
                   <label for="gifted_regex">gifted regex: </label>
-            <input type="text" name="gifted_regex" id="gifted_regex" value="(.*) just gifted ([1-9][0-9]*) Tier ([1-3]?) subscriptions!" required><br>
+            <input type="text" name="gifted_regex" id="gifted_regex" value="{{GIFTED_REGEX}}" required><br>
             <label for="bits_regex">bits regex: </label>
-            <input type="text" name="bits_regex" id="bits_regex" value="Thank you (.*) for donating ([1-9][0-9]*) bits" required><br>
+            <input type="text" name="bits_regex" id="bits_regex" value="{{BITS_REGEX}}" required><br>
             <label for="tip_regex">tip regex: </label>
-            <input type="text" name="tip_regex" id="tip_regex" value="Thank you (.*) for tipping \$((0|[1-9][0-9])*\.(0|[0-9][0-9])??)!" required><br>
+            <input type="text" name="tip_regex" id="tip_regex" value="{{TIP_REGEX}}" required><br>
 
                 </td></tr>
                 </table>

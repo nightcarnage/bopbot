@@ -43,38 +43,38 @@ error = None
 quit = False
 auth_sessions = []
 
-BOPBOT_WEB = 0
-TWITCH_CLIENT_ID = 0
-TWITCH_SECRET = 0
-TARGET_CHANNEL = 0
-SPOTIFY_CLIENT_ID = 0
-SPOTIFY_SECRET = 0
-SPOTIFY_PLAYLIST_URL = 0
-SPOTIFY_PLAYLIST_URI = 0
-SPOTIFY_REQUEST_URI = 0
-GIFTED_REGEX = 0
-BITS_REGEX = 0
-TIP_REGEX = 0
-SIGNAL_BOT = 0
-TWITCH_REQUEST_URI = 0
+BOPBOT_WEB = False
+TWITCH_CLIENT_ID = ''
+TWITCH_SECRET = ''
+TARGET_CHANNEL = ''
+SPOTIFY_CLIENT_ID = ''
+SPOTIFY_SECRET = ''
+SPOTIFY_PLAYLIST_URL = ''
+SPOTIFY_PLAYLIST_URI = ''
+SPOTIFY_REQUEST_URI = ''
+GIFTED_REGEX = ''
+BITS_REGEX = ''
+TIP_REGEX = ''
+SIGNAL_BOT =''
+TWITCH_REQUEST_URI = ''
 AMOUNT_BITS = 0
 AMOUNT_GIFTED_TIER1 = 0
 AMOUNT_GIFTED_TIER2 = 0
 AMOUNT_GIFTED_TIER3 = 0
-AMOUNT_TIP = 0
-CLEAN_PLAYLIST = 0
-REQUEST_CMD = 0
-SONG_CMD = 0
-CREDIT_CMD = 0
-DISABLE_CREDIT_CMD = 0
-DISABLE_SONG_CMD = 0
-DISABLE_REQUEST_CMD = 0
-CUMULATIVE_CREDIT = 0
-CREDIT_MESSAGE = 0
-SONG_MESSAGE = 0
-NO_SONG_MESSAGE = 0
-REQUEST_MESSAGE = 0
-NOTIFY_MESSAGE = 0
+AMOUNT_TIP = 0.0
+CLEAN_PLAYLIST = False
+REQUEST_CMD = ''
+SONG_CMD = ''
+CREDIT_CMD = ''
+DISABLE_CREDIT_CMD = False
+DISABLE_SONG_CMD = False
+DISABLE_REQUEST_CMD = False
+CUMULATIVE_CREDIT = True
+CREDIT_MESSAGE = ''
+SONG_MESSAGE = ''
+NO_SONG_MESSAGE = ''
+REQUEST_MESSAGE = ''
+NOTIFY_MESSAGE = ''
 
 def fail(*args):
     global error
@@ -135,7 +135,7 @@ def read_conf():
         SPOTIFY_PLAYLIST_URL = cfg['spotify']['playlist_url']
         SPOTIFY_PLAYLIST_URI = ''
     except Exception as r:
-        return fail('Error reading "config.ini".', str(r))
+        return fail('Error reading from "config.ini".', str(r))
     else:
         SPOTIFY_REQUEST_URI = cfg.get('spotify', 'request_uri', fallback='http://localhost:3000')
 
@@ -166,6 +166,132 @@ def read_conf():
         NO_SONG_MESSAGE = cfg.get('messages', 'no_song_message', fallback="f'@{username}, there is currently no song playing.'")
         REQUEST_MESSAGE = cfg.get('messages', 'request_message', fallback="f'@{username}, added {name} by {artist} to the playlist.'")
         NOTIFY_MESSAGE = cfg.get('messages', 'notify_message', fallback="f'@{username}, you now have {credit} song request credit(s).'")
+
+def save_conf(request):
+
+    global TWITCH_CLIENT_ID
+    global TWITCH_SECRET
+    global TARGET_CHANNEL
+    global SPOTIFY_CLIENT_ID
+    global SPOTIFY_SECRET
+    global SPOTIFY_PLAYLIST_URL
+    global SPOTIFY_PLAYLIST_URI
+    global SPOTIFY_REQUEST_URI
+    global GIFTED_REGEX
+    global BITS_REGEX
+    global TIP_REGEX
+    global SIGNAL_BOT
+    global TWITCH_REQUEST_URI
+    global AMOUNT_BITS
+    global AMOUNT_GIFTED_TIER1
+    global AMOUNT_GIFTED_TIER2
+    global AMOUNT_GIFTED_TIER3
+    global AMOUNT_TIP
+    global CLEAN_PLAYLIST
+    global REQUEST_CMD
+    global SONG_CMD
+    global CREDIT_CMD
+    global DISABLE_CREDIT_CMD
+    global DISABLE_SONG_CMD
+    global DISABLE_REQUEST_CMD
+    global CUMULATIVE_CREDIT
+    global CREDIT_MESSAGE
+    global SONG_MESSAGE
+    global NO_SONG_MESSAGE
+    global REQUEST_MESSAGE
+    global NOTIFY_MESSAGE
+
+    if BOPBOT_WEB:
+            inputs = request.args#[]
+            #for x in request.args:
+             #   inputs.append(html.escape(x).decode('utf-8'))
+
+            TWITCH_CLIENT_ID = inputs[b'twitch_client_id'][0].decode('utf-8')
+            TWITCH_SECRET = inputs[b'twitch_secret'][0].decode('utf-8')
+            TARGET_CHANNEL = inputs[b'target_channel'][0].decode('utf-8')
+            SPOTIFY_CLIENT_ID = inputs[b'spotify_client_id'][0].decode('utf-8')
+            SPOTIFY_SECRET = inputs[b'spotify_secret'][0].decode('utf-8')
+            SPOTIFY_PLAYLIST_URL = inputs[b'playlist_url'][0].decode('utf-8')
+            SPOTIFY_REQUEST_URI = inputs[b'spotify_request_uri'][0].decode('utf-8')
+            GIFTED_REGEX = inputs[b'gifted_regex'][0].decode('utf-8')
+            BITS_REGEX = inputs[b'bits_regex'][0].decode('utf-8')
+            TIP_REGEX = inputs[b'tip_regex'][0].decode('utf-8')
+            SIGNAL_BOT = inputs[b'signal_bot'][0].decode('utf-8')
+            TWITCH_REQUEST_URI = inputs[b'twitch_request_uri'][0].decode('utf-8')
+            AMOUNT_BITS = inputs[b'amount_bits'][0].decode('utf-8')
+            AMOUNT_GIFTED_TIER1 = inputs[b'amount_gifted_tier1'][0].decode('utf-8')
+            AMOUNT_GIFTED_TIER2 = inputs[b'amount_gifted_tier2'][0].decode('utf-8')
+            AMOUNT_GIFTED_TIER3 = inputs[b'amount_gifted_tier3'][0].decode('utf-8')
+            AMOUNT_TIP = inputs[b'amount_tip'][0].decode('utf-8')
+            REQUEST_CMD = inputs[b'request_cmd'][0].decode('utf-8')
+            SONG_CMD = inputs[b'song_cmd'][0].decode('utf-8')
+            CREDIT_CMD = inputs[b'credit_cmd'][0].decode('utf-8')
+
+            if not b'clean_playlist' in inputs.keys():
+                CLEAN_PLAYLIST = False
+            else:
+                CLEAN_PLAYLIST = True
+            if not b'disable_credit_cmd' in inputs.keys():
+                DISABLE_CREDIT_CMD = False
+            else:
+                DISABLE_CREDIT_CMD = True
+            if not b'disable_song_cmd' in inputs.keys():
+                DISABLE_SONG_CMD = False
+            else:
+                DISABLE_SONG_CMD = True
+            if not b'disable_request_cmd' in inputs.keys():
+                DISABLE_REQUEST_CMD = False
+            else:
+                DISABLE_REQUEST_CMD = True
+            if not b'cumulative_credit' in inputs.keys():
+                CUMULATIVE_CREDIT = False
+            else:
+                CUMULATIVE_CREDIT = True
+
+            CREDIT_MESSAGE = inputs[b'credit_message'][0].decode('utf-8')
+            SONG_MESSAGE = inputs[b'song_message'][0].decode('utf-8')
+            NO_SONG_MESSAGE = inputs[b'no_song_message'][0].decode('utf-8')
+            REQUEST_MESSAGE = inputs[b'request_message'][0].decode('utf-8')
+            NOTIFY_MESSAGE = inputs[b'notify_message'][0].decode('utf-8')
+
+    cfg.set('twitch', 'client_id', str(TWITCH_CLIENT_ID))
+    cfg.set('twitch', 'secret_key', str(TWITCH_SECRET))
+    cfg.set('twitch', 'channel', str(TARGET_CHANNEL))
+    cfg.set('spotify', 'client_id', str(SPOTIFY_CLIENT_ID))
+    cfg.set('spotify', 'secret_key', str(SPOTIFY_SECRET))
+    cfg.set('spotify', 'playlist_url', str(SPOTIFY_PLAYLIST_URL))
+    cfg.set('twitch', 'request_uri', str(SPOTIFY_REQUEST_URI))
+    cfg.set('twitch', 'gifted_regex', str(GIFTED_REGEX))
+    cfg.set('twitch', 'bits_regex', str(BITS_REGEX))
+    cfg.set('twitch', 'tip_regex', str(TIP_REGEX))
+    cfg.set('twitch', 'signal_bot', str(SIGNAL_BOT))
+    cfg.set('twitch', 'request_uri', str(TWITCH_REQUEST_URI))
+    cfg.set('cost', 'amount_bits', str(AMOUNT_BITS))
+    cfg.set('cost', 'amount_gifted_tier1', str(AMOUNT_GIFTED_TIER1))
+    cfg.set('cost', 'amount_gifted_tier2', str(AMOUNT_GIFTED_TIER2))
+    cfg.set('cost', 'amount_gifted_tier3', str(AMOUNT_GIFTED_TIER3))
+    cfg.set('cost', 'amount_tip', str(AMOUNT_TIP))
+    cfg.set('bopbot', 'clean_playlist', str(CLEAN_PLAYLIST))
+    cfg.set('bopbot', 'request_cmd', str(REQUEST_CMD))
+    cfg.set('bopbot', 'song_cmd', str(SONG_CMD))
+    cfg.set('bopbot', 'credit_cmd', str(CREDIT_CMD))
+    cfg.set('bopbot', 'disable_credit_cmd', str(DISABLE_CREDIT_CMD))
+    cfg.set('bopbot', 'disable_song_cmd', str(DISABLE_SONG_CMD))
+    cfg.set('bopbot', 'disable_request_cmd', str(DISABLE_REQUEST_CMD))
+    cfg.set('bopbot', 'cumulative_credit', str(CUMULATIVE_CREDIT))
+    cfg.set('messages', 'credit_message', str(CREDIT_MESSAGE))
+    cfg.set('messages', 'song_message', str(SONG_MESSAGE))
+    cfg.set('messages', 'no_song_message', str(NO_SONG_MESSAGE))
+    cfg.set('messages', 'request_message', str(REQUEST_MESSAGE))
+    cfg.set('messages', 'notify_message', str(NOTIFY_MESSAGE))
+
+    try:
+        f = open('config.ini', 'w')
+        cfg.write(f)
+        f.close()
+    except Exception as r:
+        return fail('Error writing to "config.ini".', str(r))
+
 
 #cache the playlist into a list
 def cache_playlist():
@@ -274,7 +400,8 @@ async def on_message(msg: ChatMessage):
             credit = str(credit)
             username = tipper
             print(username, 'now has', credit,'song request credit(s)')
-            await msg.chat.send_message(TARGET_CHANNEL, eval(NOTIFY_MESSAGE))
+            await msg.chat.send_message(TARGET_CHANNEL, \
+                env.fromg_string(NOTIFY_MESSAGE).render(username=username,credit=credit))
 
 #give 1 credit to user
 def give(username = ''):
@@ -344,7 +471,7 @@ async def credit_command(cmd: ChatCommand):
     if username.lower() in tippers.keys():
         credit = tippers[username.lower()]
 
-    await cmd.reply(eval(CREDIT_MESSAGE))
+    await cmd.reply(env.from_string(CREDIT_MESSAGE).render(username=username,credit=credit))
 
 #bot will reply with currently playing song
 async def song_command(cmd: ChatCommand):
@@ -356,13 +483,14 @@ async def song_command(cmd: ChatCommand):
     username = cmd.user.name
 
     if tr == None:
-        await cmd.reply(eval(NO_SONG_MESSAGE))
+        await cmd.reply(env.from_string(NO_SONG_MESSAGE).render(username=username))
         return
 
     name = tr['item']['name']
     artist = tr['item']['artists'][0]['name']
 
-    await cmd.reply(eval(SONG_MESSAGE))
+    await cmd.reply(env.from_string(SONG_MESSAGE).\
+        render(username=username,name=name,artist=artist))
 
 #bot will add song to playlist if tipper has credit
 async def request_command(cmd: ChatCommand):
@@ -407,7 +535,8 @@ async def request_command(cmd: ChatCommand):
                 artist = track['artists'][0]['name']
                 username = cmd.user.name
 
-                await cmd.reply(eval(REQUEST_MESSAGE))
+                await cmd.reply(env.from_string(REQUEST_MESSAGE).\
+                    render(name=name,artist=artist,username=username))
 
                 print(username, 'added', name, 'by', artist, 'to position', str(ci+1), 'in the playlist.')
 
@@ -647,16 +776,74 @@ class start(resource.Resource):
         template['header']['title'] = app_name + ' - start'
         return show_content('start.html')
 
+def configure_get(request):
+    request.setHeader('Content-Type', 'text/html; charset=utf-8')
+    template['header']['title']  = app_name + ' - configure'
+
+    template['content']['BOPBOT_WEB'] = BOPBOT_WEB 
+    template['content']['TWITCH_CLIENT_ID'] = TWITCH_CLIENT_ID
+    template['content']['TWITCH_SECRET'] = TWITCH_SECRET
+    template['content']['TARGET_CHANNEL'] = TARGET_CHANNEL
+    template['content']['SPOTIFY_CLIENT_ID'] = SPOTIFY_CLIENT_ID
+    template['content']['SPOTIFY_SECRET'] = SPOTIFY_SECRET
+    template['content']['SPOTIFY_PLAYLIST_URL'] = SPOTIFY_PLAYLIST_URL
+    template['content']['SPOTIFY_PLAYLIST_URI'] = SPOTIFY_PLAYLIST_URI
+    template['content']['SPOTIFY_REQUEST_URI'] = SPOTIFY_REQUEST_URI
+    template['content']['GIFTED_REGEX'] = GIFTED_REGEX
+    template['content']['BITS_REGEX'] = BITS_REGEX
+    template['content']['TIP_REGEX'] = TIP_REGEX
+    template['content']['SIGNAL_BOT'] = SIGNAL_BOT
+    template['content']['TWITCH_REQUEST_URI'] = TWITCH_REQUEST_URI
+    template['content']['AMOUNT_BITS'] = AMOUNT_BITS
+    template['content']['AMOUNT_GIFTED_TIER1'] = AMOUNT_GIFTED_TIER1
+    template['content']['AMOUNT_GIFTED_TIER2'] = AMOUNT_GIFTED_TIER2
+    template['content']['AMOUNT_GIFTED_TIER3'] = AMOUNT_GIFTED_TIER3
+    template['content']['AMOUNT_TIP'] = AMOUNT_TIP
+    template['content']['REQUEST_CMD'] = REQUEST_CMD
+    template['content']['SONG_CMD'] = SONG_CMD
+    template['content']['CREDIT_CMD'] = CREDIT_CMD
+
+    template['content']['CLEAN_PLAYLIST'] = ''
+    template['content']['DISABLE_CREDIT_CMD'] = ''
+    template['content']['DISABLE_SONG_CMD'] = ''
+    template['content']['DISABLE_REQUEST_CMD'] = ''
+    template['content']['CUMULATIVE_CREDIT'] = ''
+
+    ch = 'checked'
+    if CLEAN_PLAYLIST:
+        template['content']['CLEAN_PLAYLIST'] = ch
+    if DISABLE_CREDIT_CMD:
+        template['content']['DISABLE_CREDIT_CMD'] = ch
+    if DISABLE_SONG_CMD:
+        template['content']['DISABLE_SONG_CMD'] = ch
+    if DISABLE_REQUEST_CMD:
+        template['content']['DISABLE_REQUEST_CMD'] = ch
+    if CUMULATIVE_CREDIT:
+        template['content']['CUMULATIVE_CREDIT'] = ch
+
+    template['content']['CREDIT_MESSAGE'] = CREDIT_MESSAGE
+    template['content']['SONG_MESSAGE'] = SONG_MESSAGE
+    template['content']['NO_SONG_MESSAGE'] = NO_SONG_MESSAGE
+    template['content']['REQUEST_MESSAGE'] = REQUEST_MESSAGE
+    template['content']['NOTIFY_MESSAGE'] = NOTIFY_MESSAGE
+
+    return show_content('configure.html')
+
+def configure_post(request):
+    save_conf(request)
+
 class configure(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
         if needs_auth(request.getSession()): return custom402(request)
-        request.setHeader('Content-Type', 'text/html; charset=utf-8')
-        template['header']['title']  = app_name + ' - configure'
-        return show_content('configure.html')
+        return configure_get(request)
+
     def render_POST(self, request):
-        pass
-        #TODO
+        if needs_auth(request.getSession()): return custom402(request)
+
+        configure_post(request)
+
+        return configure_get(request)
     
 class login(resource.Resource):
     isLeaf = True
