@@ -14,7 +14,9 @@ from spotipy.oauth2 import SpotifyOAuth
 
 from twitchAPI.twitch import Twitch
 from twitchAPI.oauth import UserAuthenticator
-from twitchAPI.oauth import UserAuthenticationStorageHelper
+#from twitchAPI.oauth import UserAuthenticationStorageHelper
+from oauth_web import UserAuthenticator_custom
+#from oauth_web import UserAuthenticationStorageHelper_custom
 from twitchAPI.type import AuthScope, ChatEvent
 from twitchAPI.chat import Chat, EventData, ChatMessage, ChatSub, ChatCommand
 
@@ -42,6 +44,8 @@ cfg = configparser.ConfigParser()
 error = None
 quit = False
 auth_sessions = []
+status_file = None
+chat = None
 
 BOPBOT_WEB = False
 TWITCH_CLIENT_ID = ''
@@ -76,14 +80,20 @@ NO_SONG_MESSAGE = ''
 REQUEST_MESSAGE = ''
 NOTIFY_MESSAGE = ''
 
+def status(*args):
+    d = ' '.join(map(str,args))
+    global status_file
+    if status_file:
+        status_file.write(d + '\n')
+    else:
+        print(d)
+
 def fail(*args):
     global error
     er = ' '.join(map(str,args))
     error = er
-    print(er)
+    status(er)
     return er
-    #print('Exiting...')
-    #exit(-1)
 
 #read from config.ini
 def read_conf():
@@ -166,6 +176,11 @@ def read_conf():
         NO_SONG_MESSAGE = cfg.get('messages', 'no_song_message', fallback="f'@{username}, there is currently no song playing.'")
         REQUEST_MESSAGE = cfg.get('messages', 'request_message', fallback="f'@{username}, added {name} by {artist} to the playlist.'")
         NOTIFY_MESSAGE = cfg.get('messages', 'notify_message', fallback="f'@{username}, you now have {credit} song request credit(s).'")
+
+        if BOPBOT_WEB:
+            global status_file
+            status_file = open('./status_file.txt', 'w')
+
 
 def save_conf(request):
 
@@ -296,7 +311,7 @@ def save_conf(request):
 #cache the playlist into a list
 def cache_playlist():
 
-    print('Caching playlist...')
+    status('Caching playlist...')
 
     global playlist_tracks
     offset = 0
@@ -321,14 +336,15 @@ def cache_playlist():
         return fail('Error getting Spotify playlist.', str(r))
 
 async def room_join(chn): 
-    print('Joining channel:', chn)
-    await ready_event.chat.join_room(chn)
+    status('Joining channel:', chn)
+    global chat
+    await chat.join_room(chn)
 
 #setup playlist when Twitch is ready and Spotify connection established
 async def on_ready(ready_event: EventData):
 
-    print(app_name, 'is ready.')
-    print()
+    status(app_name, 'is ready.')
+    status()
     help()
 
 #parse signal bot chat notifications and calculate
@@ -399,7 +415,7 @@ async def on_message(msg: ChatMessage):
             tippers[tipper.lower()] = math.floor(credit)
             credit = str(credit)
             username = tipper
-            print(username, 'now has', credit,'song request credit(s)')
+            status(username, 'now has', credit,'song request credit(s)')
             await msg.chat.send_message(TARGET_CHANNEL, \
                 env.fromg_string(NOTIFY_MESSAGE).render(username=username,credit=credit))
 
@@ -415,25 +431,25 @@ def give(username = ''):
 #display help
 def help(command = ''):
     if command == '':
-        print('Commands: stop, start, tippers, refresh, reset, give, help, quit (or exit). For further help, type \
+        status('Commands: stop, start, tippers, refresh, reset, give, help, quit (or exit). For further help, type \
 "help <command>".')
     if command == 'quit':
-        print('The "quit" command deactivates', app_name, 'and exits the program.')
+        status('The "quit" command deactivates', app_name, 'and exits the program.')
     if command == 'help':
-        print('The "help" command provides... help.')
+        status('The "help" command provides... help.')
     if command == 'reset':
-        print('The "reset" command reverts', app_name, 'back to the startup state.')
+        status('The "reset" command reverts', app_name, 'back to the startup state.')
     if command == 'refresh':
-        print('The "refresh" command is like reset but keeps the tippers list and \
+        status('The "refresh" command is like reset but keeps the tippers list and \
 credit associated with each tipper.')
     if command == 'tippers':
-        print('The "tippers" command prints the tipper\'s twitch username and their credit')
+        status('The "tippers" command prints the tipper\'s twitch username and their credit')
     if command == 'start':
-        print('The "start" command enables song requests.')
+        status('The "start" command enables song requests.')
     if command == 'stop':
-        print('The "stop" command disables song requests.')
+        status('The "stop" command disables song requests.')
     if command == 'give':
-        print('The "give <username>" command will give 1 credit to <username>.')
+        status('The "give <username>" command will give 1 credit to <username>.')
 
 #if clean_playlist is specificed in config.ini
 #then when program is reset or exited it will
@@ -444,7 +460,7 @@ def clean_playlist():
     global CLEAN_PLAYLIST
     if not CLEAN_PLAYLIST: return
 
-    print('Removing requested songs from playlist...')
+    status('Removing requested songs from playlist...')
 
     i = 0
     for track in playlist_tracks:
@@ -457,7 +473,7 @@ def clean_playlist():
             sp.playlist_remove_specific_occurrences_of_items(
             SPOTIFY_PLAYLIST_URI, track_ids
             )
-            print('Removing track', tid)
+            status('Removing track', tid)
             time.sleep(0.3)
             i+=1
 
@@ -503,7 +519,7 @@ async def request_command(cmd: ChatCommand):
             tr = sp.currently_playing()
 
             if tr == None:
-                print('Song cannot be added because there is no song from the playlist in the queue.')
+                status('Song cannot be added because there is no song from the playlist in the queue.')
                 return
    
             tippers[cmd.user.name.lower()] -= 1
@@ -538,7 +554,7 @@ async def request_command(cmd: ChatCommand):
                 await cmd.reply(env.from_string(REQUEST_MESSAGE).\
                     render(name=name,artist=artist,username=username))
 
-                print(username, 'added', name, 'by', artist, 'to position', str(ci+1), 'in the playlist.')
+                status(username, 'added', name, 'by', artist, 'to position', str(ci+1), 'in the playlist.')
 
             sp.playlist_add_items(SPOTIFY_PLAYLIST_URI, track_uris,ci)
 
@@ -547,19 +563,20 @@ def request_start():
     global DISABLE_CREDIT_CMD
     DISABLE_REQUEST_CMD = False
     DISABLE_CREDIT_CMD = cfg.getboolean('bopbot', 'disable_credit_cmd')
-    print('Requests are enabled.')
+    status('Requests are enabled.')
 
 def request_stop():
     global DISABLE_REQUEST_CMD
     global DISABLE_CREDIT_CMD
     DISABLE_REQUEST_CMD = True
     DISABLE_CREDIT_CMD = True
-    print('Requests are disabled.')
+    status('Requests are disabled.')
 
 async def authenticate():
     global sp
+    twitch = None
     try:
-        print('Authenticating with Spotify...')
+        status('Authenticating with Spotify...')
         scope = 'user-read-currently-playing user-library-read \
                 playlist-modify-private playlist-modify-public'
         sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
@@ -581,13 +598,13 @@ async def authenticate():
         cd = pyperclip.paste()
         r = re.match(rp,cd)
         if r:
-            print()
-            print('Using copied playlist URL:', cd)
+            status()
+            status('Using copied playlist URL:', cd)
             SPOTIFY_PLAYLIST_URL = cd
             SPOTIFY_PLAYLIST_URI = r.groups()[0]
         else:
 
-            print()
+            status()
             pl = input('Playlist URL: ')
             if pl:
                 SPOTIFY_PLAYLIST_URL = pl
@@ -597,28 +614,32 @@ async def authenticate():
                 else:
                     return fail('Invalid playlist URL.')
     else:
-        print()
-        print('Using config playlist URL:', SPOTIFY_PLAYLIST_URL)
+        status()
+        status('Using config playlist URL:', SPOTIFY_PLAYLIST_URL)
         r = re.match(rp,SPOTIFY_PLAYLIST_URL)
         if r:
             SPOTIFY_PLAYLIST_URI = r.groups()[0]
         else:
             return fail('Invalid playlist URL.')
-    print()
+    status()
 
 
     try:
-        print('Authenticating with Twitch...')
+        status('Authenticating with Twitch...')
         twitch_scope = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
         twitch = await Twitch(TWITCH_CLIENT_ID, TWITCH_SECRET)
-        auth = UserAuthenticator(twitch, twitch_scope)
+        auth = None
+        if not BOPBOT_WEB:
+            auth = UserAuthenticator(twitch, twitch_scope)
+        else:
+            auth = UserAuthenticator_custom(twitch, twitch_scope)
 
         token, refresh_token = await auth.authenticate()
         await twitch.set_user_authentication(token, twitch_scope, refresh_token)
     except Exception as r:
         return fail('Error connecting to Twitch.', str(r))
 
-
+    global chat
     try:
         chat = await Chat(twitch)
         chat.register_event(ChatEvent.READY, on_ready)
@@ -633,6 +654,8 @@ async def authenticate():
     
     cache_playlist()
 
+    return twitch
+
 async def run_command(line):
 
     global tippers
@@ -644,19 +667,19 @@ async def run_command(line):
 
     #commands that can be used while there is an error
     if cmd == b'reset':
-        print('Clearing tippers list...')
+        status('Clearing tippers list...')
         tippers = {}
         
         clean_playlist()
 
-        print('Clearing playlist cache...')
+        status('Clearing playlist cache...')
         playlist_tracks = []
 
         await run()
         
     if cmd == b'refresh':
         clean_playlist()
-        print('Clearing playlist cache...')
+        status('Clearing playlist cache...')
         playlist_tracks = []
 
         cache_playlist()
@@ -677,7 +700,7 @@ async def run_command(line):
             if len(line) >= 2:
                 give(line[1])
             else:
-                print('No <username> specified.')
+                status('No <username> specified.')
         
         if cmd == b'tippers':
             pprint(tippers)
@@ -701,19 +724,19 @@ async def run():
     
     read_conf()
 
-    print()
-    print(
+    status()
+    status(
 '''
  ██▄ ▄▀▄ █▀▄ ██▄ ▄▀▄ ▀█▀
  █▄█ ▀▄▀ █▀  █▄█ ▀▄▀  █ 
 '''
 )
-    print()
+    status()
 
-    print(app_name, 'has started.')
+    status(app_name, 'has started.')
 
-    #await authenticate()
-    #await room_join(TARGET_CHANNEL)
+    twitch = await authenticate()
+    await room_join(TARGET_CHANNEL)
 
     if BOPBOT_WEB:
         site = server.Site(root)
@@ -728,16 +751,16 @@ async def run():
             line = input()
             if len(line.split()) >= 1:
                 if error:
-                    print('Error requires correction:', str(error))
+                    status('Error requires correction:', str(error))
                 await run_command(line)
 
-    print('Leaving Twitch...')
+    status('Leaving Twitch...')
     chat.stop()
     await twitch.close()
 
     clean_playlist()
 
-    print('Exiting...')
+    status('Exiting...')
 
 template = dict(
     header = dict(title=app_name),
@@ -760,6 +783,7 @@ def show_content(tmp):
 def custom402(request):
     request.setHeader('Content-Type', 'text/html; charset=utf-8')
     request.setResponseCode(402)
+    template['header']['title'] = app_name + ' - Not Authorized'
     template['content']['message'] = markdown('#Not Authorized\n\nThe page requires authorization.')
     return show_content('message.html')
 
@@ -768,7 +792,7 @@ def needs_auth(session):
         return False
     return True
 
-class start(resource.Resource):
+class connect(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
         if needs_auth(request.getSession()): return custom402(request)
@@ -876,7 +900,7 @@ class login(resource.Resource):
             global auth_sessions
             if not request.getSession().uid in auth_sessions:
                 auth_sessions.append(request.getSession().uid)
-            return redirectTo(b'/app/start', request)
+            return redirectTo(b'/app/connect', request)
 
         return custom402(request)
 
@@ -913,6 +937,15 @@ class api(resource.Resource):
         else:
             return b''
 
+class admin(resource.Resource):
+    isLeaf = True
+    def render_GET(self, request):
+        if needs_auth(request.getSession()): return custom402(request)
+        request.setHeader('Content-Type', 'text/html; charset=utf-8')
+
+        template['header']['title'] = app_name + ' - admin'
+        return show_content('admin.html')
+
 class custom404(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
@@ -934,9 +967,10 @@ root = _root()
 root.putChild(b'', main())
 root.putChild(b'static', static.File('./static'))
 app = _root()
-app.putChild(b'start', start())
+app.putChild(b'connect', connect())
 app.putChild(b'configure', configure())
 app.putChild(b'api', api())
+app.putChild(b'admin', admin())
 root.putChild(b'app', app)
 auth = _root()
 auth.putChild(b'login', login())

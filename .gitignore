@@ -8,3 +8,4 @@ config.ini
 user_token.json
 passwd.json
 TODO.txt
+status_file.txt

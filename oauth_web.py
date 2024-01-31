@@ -199,7 +199,7 @@ async def revoke_token(client_id: str,
     return ret
 
 
-class UserAuthenticator:
+class UserAuthenticator_custom:
     """Simple to use client for the Twitch User authentication flow.
        """
 
@@ -413,7 +413,7 @@ class UserAuthenticator:
         #    self._callback_func(data['access_token'], data['refresh_token'])
 
 
-class UserAuthenticationStorageHelper:
+class UserAuthenticationStorageHelper_custom:
     """Helper for automating the generation and storage of a user auth token.\n
     See :doc:`/tutorial/reuse-user-token` for more detailed examples and use cases.
 
